@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <!-- 프로젝트 제목 -->
+    <TextView
+        android:id="@+id/tv_tasklist_project_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="프로젝트명"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <!-- Task 목록 (여기선 나중에 RecyclerView로 대체 가능) -->
+    <LinearLayout
+        android:id="@+id/layout_task_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tv_tasklist_project_title"
+        android:layout_above="@+id/btn_add_task"
+        android:orientation="vertical"
+        android:paddingTop="16dp" />
+
+    <!-- + 버튼 -->
+    <Button
+        android:id="@+id/btn_add_task"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:text="+"
+        android:textSize="24sp"
+        android:backgroundTint="#6200EE"
+        android:textColor="#FFFFFF"
+        />
+</RelativeLayout>

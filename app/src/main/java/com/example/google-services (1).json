@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "263207779159",
+    "project_id": "tasklink-fe8dc",
+    "storage_bucket": "tasklink-fe8dc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:263207779159:android:2f97abf94da15cbcd49c12",
+        "android_client_info": {
+          "package_name": "com.example.tasklink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpeicTVVnGqL2oAxKepGRtbV4VczJ1rrQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
