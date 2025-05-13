@@ -61,10 +61,11 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
+            <EditText
+                android:id="@+id/task_detail_task_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Task Detail"
+                android:hint="Type Task Title"
                 android:textSize="34sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
@@ -107,7 +108,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:text="📅 마감일 선택"
+                    android:text="📅 마감일"
                     android:textSize="16sp" />
 
                 <ImageButton
@@ -132,7 +133,7 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:text="📁 파일 선택"
+                    android:text="📁 파일"
                     android:textSize="16sp" />
 
                 <ImageButton

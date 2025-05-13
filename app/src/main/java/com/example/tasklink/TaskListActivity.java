@@ -35,7 +35,8 @@ public class TaskListActivity extends AppCompatActivity {
         }
 
         btnAddTask.setOnClickListener(v -> {
-            Intent intent = new Intent(TaskListActivity.this, TaskSettingActivity.class);
+            //추가 버튼 누르면 taskDetail화면으로.
+            Intent intent = new Intent(TaskListActivity.this, TaskDetailActivity.class);
             intent.putExtra("projectName", projectName);
             startActivity(intent);
         });
@@ -62,6 +63,7 @@ public class TaskListActivity extends AppCompatActivity {
                 for (DataSnapshot taskSnapshot : snapshot.getChildren()) {
                     TaskModel task = taskSnapshot.getValue(TaskModel.class);
                     if (task != null && task.taskTitle != null && task.members != null && !task.members.isEmpty()) {
+                        task.firebaseKey = taskSnapshot.getKey();
                         addTaskCard(task);
                         hasValidTasks = true;
                     }
@@ -100,7 +102,7 @@ public class TaskListActivity extends AppCompatActivity {
 
         btnViewDetail.setOnClickListener(v -> {
             Intent intent = new Intent(TaskListActivity.this, TaskDetailActivity.class);
-            intent.putExtra("taskTitle", task.taskTitle);
+            intent.putExtra("taskKey", task.firebaseKey);//key로 task관리하기 위해 taskKey를 보냄
             intent.putExtra("projectName", projectName);
             startActivity(intent);
         });

@@ -41,9 +41,9 @@ public class MaindashboardActivity extends AppCompatActivity {
             tvWelcome.setText(email + "님의 대시보드");
         }
 
-        // 프로젝트 생성 버튼 클릭 시
+        // ****프로젝트 생성 버튼 클릭->TaskSetting창으로 이동하도록 수정함.
         btnAddProject.setOnClickListener(v -> {
-            Intent intent = new Intent(MaindashboardActivity.this, NewProjectCreateActivity.class);
+            Intent intent = new Intent(MaindashboardActivity.this, TaskSettingActivity.class);
             startActivity(intent);
         });
     }
