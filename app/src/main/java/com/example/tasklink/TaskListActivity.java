@@ -2,10 +2,10 @@ package com.example.tasklink;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.widget.Toast;
 
 import com.example.tasklink.repository.TaskRepository;
@@ -21,39 +21,39 @@ public class TaskListActivity extends AppCompatActivity {
     private TaskRepository taskRepo = new TaskRepository();
     private String projectName;
 
-    /**
-     * onCreate: Activity 생성 시 레이아웃 설정,
-     * Intent로부터 projectName을 받아 RecyclerView와 Adapter를 초기화합니다.
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tasklist);
 
-        // 프로젝트 식별자 가져오기
+        // 1) Intent에서 프로젝트 이름 받아오기
         projectName = getIntent().getStringExtra("projectName");
 
-        // RecyclerView 설정
+        // 2) RecyclerView 초기화
         rvTasks = findViewById(R.id.rvTasks);
         rvTasks.setLayoutManager(new LinearLayoutManager(this));
-
-        // Adapter 생성 및 클릭 이벤트 처리
         adapter = new TaskAdapter(taskList, task -> {
-            Intent i = new Intent(this, TaskDetailActivity.class);
-            i.putExtra("projectName", projectName);
-            i.putExtra("taskId", task.id);
-            startActivity(i);
+            // 3) 각 Task 클릭 시 상세 화면으로 이동
+            Intent intent = new Intent(this, TaskDetailActivity.class);
+            intent.putExtra("projectName", projectName);
+            intent.putExtra("taskId", task.id);
+            startActivity(intent);
         });
         rvTasks.setAdapter(adapter);
+
+        // 4) + 버튼 클릭 시 새 Task 생성 화면으로 이동
+        FloatingActionButton fab = findViewById(R.id.fabAddTask);
+        fab.setOnClickListener(v -> {
+            Intent intent = new Intent(TaskListActivity.this, TaskDetailActivity.class);
+            intent.putExtra("projectName", projectName);
+            startActivity(intent);
+        });
     }
 
-    /**
-     * onResume: Activity가 화면에 표시될 때 TaskRepository에 리스너를 등록하여
-     * 실시간으로 Task 데이터를 로드 및 변화 감지를 시작합니다.
-     */
     @Override
     protected void onResume() {
         super.onResume();
+        // 5) 화면에 보일 때 데이터 리스너 등록
         taskRepo.attachListener(projectName, new TaskRepository.OnTasksChanged() {
             @Override
             public void onLoaded(List<TaskModel> tasks) {
@@ -71,13 +71,10 @@ public class TaskListActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * onPause: Activity가 백그라운드로 전환될 때 등록된 리스너를 해제하여
-     * 메모리 누수 및 중복 콜백을 방지합니다.
-     */
     @Override
     protected void onPause() {
         super.onPause();
+        // 6) 백그라운드 전환 시 리스너 해제
         taskRepo.detachListener(projectName);
     }
 }
