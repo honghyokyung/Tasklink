@@ -35,10 +35,29 @@ public class MaindashboardActivity extends AppCompatActivity {
         layoutProjectList = findViewById(R.id.layout_project_list);
         btnAddProject = findViewById(R.id.btn_add_project);
 
-        // 로그인한 사용자 이메일 받아서 출력
-        String email = getIntent().getStringExtra("userEmail");
-        if (email != null) {
-            tvWelcome.setText(email + "님의 대시보드");
+        // ✅ 현재 로그인한 사용자 UID로 닉네임 불러오기
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            String uid = user.getUid();
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid).child("nickname");
+
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    String nickname = snapshot.getValue(String.class);
+                    if (nickname != null) {
+                        tvWelcome.setText(nickname + "님의 대시보드");
+                    } else {
+                        tvWelcome.setText("대시보드");
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    tvWelcome.setText("대시보드");
+                    Toast.makeText(MaindashboardActivity.this, "닉네임 불러오기 실패", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         // 프로젝트 생성 버튼 클릭 시
