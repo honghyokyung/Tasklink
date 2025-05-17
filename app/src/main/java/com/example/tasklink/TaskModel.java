@@ -40,4 +40,20 @@ public class TaskModel {
     public String getTaskTitle() {
         return taskTitle;
     }
+
+    public String getDeadline() {
+        return deadline;
+    }
+
+    public List<MemberRoleModel> getMembers() {
+        return members;
+    }
+
+    public String getDescription(){
+        return description;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
 }

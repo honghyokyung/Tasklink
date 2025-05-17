@@ -25,7 +25,6 @@
         <activity android:name=".MaindashboardActivity" />
         <activity android:name=".TaskListActivity" />
         <activity android:name=".NewProjectCreateActivity" />
-        <activity android:name=".ProjectModel" />
         <activity android:name=".TaskSettingActivity" />
         <activity android:name=".TaskDetailActivity" />
         <activity android:name=".LoginActivity" />

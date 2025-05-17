@@ -3,6 +3,7 @@ package com.example.tasklink;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.util.Log;
@@ -69,6 +70,15 @@ public class TaskAdapter
                 holder.layoutTaskMembers.addView(tv);
             }
         }
+
+        holder.itemView.setOnClickListener(v ->
+                listener.onTaskClick(task)
+        );
+
+        // 2) “자세히 보기” 버튼 클릭
+        holder.btnViewDetail.setOnClickListener(v ->
+                listener.onTaskClick(task)
+        );
     }
 
     @Override public int getItemCount() {
@@ -78,11 +88,13 @@ public class TaskAdapter
     static class TaskViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle;
         LinearLayout layoutTaskMembers;  // 여기 이름을 layout_task_members 와 매핑
+        Button btnViewDetail;
 
         TaskViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tv_task_title);
             layoutTaskMembers = itemView.findViewById(R.id.layout_task_members);
+            btnViewDetail  = itemView.findViewById(R.id.btn_view_detail);
         }
     }
 

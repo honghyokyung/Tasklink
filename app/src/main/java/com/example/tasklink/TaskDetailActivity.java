@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.*;
-import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.database.*;
@@ -14,163 +16,189 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+/**
+ * Task 상세(읽기/수정) 화면
+ */
 public class TaskDetailActivity extends AppCompatActivity {
 
-    private static final int FILE_PICK_CODE = 1001;
-
     private String projectName;
-    private String firebaseKey;
+    private String taskId;
 
-    private EditText editTaskTitle, editDescription;
-    private TextView textDeadline, textFile, textAssignUser;
+    private EditText etTitle, etDescription;
+    private TextView tvDeadline, tvFile, tvAssignUser;
 
     private List<MemberRoleModel> members = new ArrayList<>();
+
+    // 파일 선택용 ActivityResultLauncher
+    private final ActivityResultLauncher<String> pickFileLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.GetContent(),
+                    uri -> {
+                        if (uri != null) {
+                            String name = uri.getLastPathSegment();
+                            tvFile.setText("📁 파일: " + name);
+                        }
+                    }
+            );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.taskdetail);
 
+        // 1) Intent 키 통일: 리스트에서 putExtra("taskId", key)로 보낸다고 가정
         projectName = getIntent().getStringExtra("projectName");
-        //taskKey를 받아와서 제목을 수정해도 수정된제목+내용 그대로 유지하도록 함.
-        firebaseKey = getIntent().getStringExtra("taskKey");
-
-        editTaskTitle = findViewById(R.id.task_detail_task_title);
-        editDescription = findViewById(R.id.edit_description);
-        textDeadline = findViewById(R.id.text_deadline);
-        textFile = findViewById(R.id.text_file);
-        textAssignUser = findViewById(R.id.text_assign_user);
-
-        ImageButton backBtn = findViewById(R.id.button_back);
-        ImageButton chatBtn = findViewById(R.id.button_chat);
-        ImageButton addUserBtn = findViewById(R.id.button_add_user);
-        ImageButton dateBtn = findViewById(R.id.button_pick_date);
-        ImageButton fileBtn = findViewById(R.id.button_pick_file);
-
-        if (firebaseKey != null) {
-            loadTaskFromFirebase();
-        } else {
-            textAssignUser.setText("👤 담당자");
-            textDeadline.setText("📅 마감일");
-            textFile.setText("📁 파일");
+        taskId      = getIntent().getStringExtra("taskId");
+        if (projectName == null) {
+            Toast.makeText(this, "프로젝트 정보가 없습니다", Toast.LENGTH_SHORT).show();
+            finish(); return;
         }
 
-        dateBtn.setOnClickListener(v -> {
-            Calendar calendar = Calendar.getInstance();
-            int y = calendar.get(Calendar.YEAR);
-            int m = calendar.get(Calendar.MONTH);
-            int d = calendar.get(Calendar.DAY_OF_MONTH);
+        // 2) 뷰 바인딩
+        etTitle       = findViewById(R.id.task_detail_task_title);
+        etDescription = findViewById(R.id.edit_description);
+        tvDeadline    = findViewById(R.id.text_deadline);
+        tvFile        = findViewById(R.id.text_file);
+        tvAssignUser  = findViewById(R.id.text_assign_user);
 
-            DatePickerDialog dialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-                String deadline = "📅 마감: " + year + "-" + (month + 1) + "-" + dayOfMonth;
-                textDeadline.setText(deadline);
-            }, y, m, d);
-            dialog.show();
-        });
+        ImageButton btnBack      = findViewById(R.id.button_back);
+        ImageButton btnChat      = findViewById(R.id.button_chat);
+        ImageButton btnAddUser   = findViewById(R.id.button_add_user);
+        ImageButton btnPickDate  = findViewById(R.id.button_pick_date);
+        ImageButton btnPickFile  = findViewById(R.id.button_pick_file);
 
-        fileBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            startActivityForResult(Intent.createChooser(intent, "파일 선택"), FILE_PICK_CODE);
-        });
+        // 3) 뒤로가기
+        btnBack.setOnClickListener(v -> saveAndExit());
 
-        addUserBtn.setOnClickListener(v -> {
+        // 4) 채팅 버튼
+        btnChat.setOnClickListener(v ->
+            /*
+            {
+            Intent i = new Intent(this, ChatActivity.class);
+            i.putExtra("projectName", projectName);
+            i.putExtra("taskId", taskId);
+            startActivity(i);
+            }
+             */
+            Toast.makeText(this, "채팅 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
+        );
+
+        // 5) 담당자 선택 (예시)
+        btnAddUser.setOnClickListener(v -> {
+            // TODO: 실제 프로젝트 멤버 리스트에서 선택 UI로 교체
             members.clear();
-            //임의로 넣어둠. project만들때 추가한 member뜨게해서 선택 or 검색 가능하도록 수정해야함
             members.add(new MemberRoleModel("김유저", "프론트엔드"));
             members.add(new MemberRoleModel("이개발", "백엔드"));
-
-            StringBuilder sb = new StringBuilder();
-            for (MemberRoleModel m : members) {
-                sb.append("👤 담당자: ").append(m.name).append("/").append(m.role).append("\n");
-            }
-            textAssignUser.setText(sb.toString().trim());
+            displayMembers();
         });
 
-        backBtn.setOnClickListener(v -> {
-            saveTaskToFirebase();
-            finish();
+        // 6) 날짜 선택
+        btnPickDate.setOnClickListener(v -> {
+            Calendar c = Calendar.getInstance();
+            new DatePickerDialog(this,
+                    (dlg, y, m, d) -> tvDeadline.setText("📅 마감: " + y + "-" + (m+1) + "-" + d),
+                    c.get(Calendar.YEAR),
+                    c.get(Calendar.MONTH),
+                    c.get(Calendar.DAY_OF_MONTH)
+            ).show();
         });
 
-        chatBtn.setOnClickListener(v ->
-                Toast.makeText(this, "채팅 기능은 준비 중입니다", Toast.LENGTH_SHORT).show());
+        // 7) 파일 선택 (ActivityResult API 사용)
+        btnPickFile.setOnClickListener(v ->
+                pickFileLauncher.launch("*/*")
+        );
+
+        // 8) 기존 Task 로드 (taskId가 null이면 신규 생성 모드)
+        if (taskId != null) {
+            loadTask();
+        } else {
+            // 빈 화면 표시
+            tvAssignUser.setText("👤 담당자: 미정");
+            tvDeadline   .setText("📅 마감일");
+            tvFile       .setText("📁 파일");
+        }
     }
 
-    private void loadTaskFromFirebase() {
+    /** Firebase 에서 TaskModel 불러오기 */
+    private void loadTask() {
         DatabaseReference ref = FirebaseDatabase.getInstance()
                 .getReference("tasks")
                 .child(projectName)
-                .child(firebaseKey); //key를 받아옴
+                .child(taskId);
 
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                TaskModel task = snapshot.getValue(TaskModel.class);
-                if (task != null) {
-                    editTaskTitle.setText(task.taskTitle);
-                    editDescription.setText(task.description);
-                    textDeadline.setText(task.deadline != null ? task.deadline : "📅 마감일");
-                    textFile.setText(task.fileName != null ? task.fileName : "📁 파일");
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                // GenericTypeIndicator로 List<MemberRoleModel> 꺼내기
+                TaskModel task = snap.getValue(TaskModel.class);
+                if (task == null) { finish(); return; }
 
-                    if (task.members != null) {
-                        members = task.members;
-                        StringBuilder sb = new StringBuilder();
-                        for (MemberRoleModel m : members) {
-                            sb.append("👤 담당자: ").append(m.name).append("/").append(m.role).append("\n");
-                        }
-                        textAssignUser.setText(sb.toString().trim());
-                    }
+                // 읽기 전용 모드 전환
+                etTitle      .setText(task.getTaskTitle());
+                etTitle      .setEnabled(false);
+                etDescription.setText(task.getDescription());
+                etDescription.setEnabled(false);
+
+                tvDeadline.setText(
+                        task.getDeadline()!=null ? task.getDeadline() : "📅 마감일"
+                );
+                tvFile    .setText(
+                        task.getFileName()!=null ? "📁 파일: "+task.getFileName() : "📁 파일"
+                );
+
+                if (task.getMembers()!=null) {
+                    members = task.getMembers();
+                    displayMembers();
                 }
             }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Toast.makeText(TaskDetailActivity.this, "불러오기 실패: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            @Override public void onCancelled(@NonNull DatabaseError err) {
+                Toast.makeText(TaskDetailActivity.this,
+                        "로드 실패: "+err.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void saveTaskToFirebase() {
-        String taskTitleInput = editTaskTitle.getText().toString().trim();
-        if (taskTitleInput.isEmpty()) {
-            Toast.makeText(this, "Task 제목을 입력하세요", Toast.LENGTH_SHORT).show();
-            return;
+    /** 현재 members 리스트를 TextView에 보여주기 */
+    private void displayMembers() {
+        StringBuilder sb = new StringBuilder();
+        for (MemberRoleModel m : members) {
+            sb.append("👤 ").append(m.name)
+                    .append(" (").append(m.role).append(")\n");
         }
-
-        if (members.isEmpty()) {
-            //담당자 선택 안하면 미정으로 뜨게 하였음. (담당자:미정/역할 미정)
-            members.add(new MemberRoleModel("미정", "미정"));
-        }
-
-        String deadline = textDeadline.getText().toString();
-        String fileName = textFile.getText().toString();
-        String description = editDescription.getText().toString();
-
-        TaskModel task = new TaskModel(taskTitleInput, members, deadline, fileName, description);
-
-        String keyToUse = (firebaseKey != null) ? firebaseKey : taskTitleInput;
-
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                .getReference("tasks")
-                .child(projectName)
-                .child(keyToUse);
-
-        ref.setValue(task)
-                .addOnSuccessListener(v ->
-                        Toast.makeText(this, "저장 완료", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "저장 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        tvAssignUser.setText(sb.toString().trim());
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILE_PICK_CODE && resultCode == RESULT_OK && data != null) {
-            Uri uri = data.getData();
-            if (uri != null) {
-                String fileName = uri.getLastPathSegment();
-                textFile.setText("📁 파일: " + fileName);
-            }
+    /** Task를 저장하고 액티비티 종료 */
+    private void saveAndExit() {
+        String title = etTitle.getText().toString().trim();
+        if (title.isEmpty()) {
+            Toast.makeText(this, "제목을 입력하세요", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (members.isEmpty()) {
+            members.add(new MemberRoleModel("미정","미정"));
+        }
+
+        TaskModel task = new TaskModel(
+                title,
+                members,
+                tvDeadline.getText().toString(),
+                tvFile    .getText().toString(),
+                etDescription.getText().toString()
+        );
+
+        DatabaseReference tasksRef = FirebaseDatabase.getInstance()
+                .getReference("tasks")
+                .child(projectName);
+
+        // 신규: push() key, 수정: 기존 taskId
+        if (taskId == null) {
+            String newKey = tasksRef.push().getKey();
+            tasksRef.child(newKey).setValue(task)
+                    .addOnSuccessListener(a -> finish());
+        } else {
+            tasksRef.child(taskId).setValue(task)
+                    .addOnSuccessListener(a -> finish());
         }
     }
 }
