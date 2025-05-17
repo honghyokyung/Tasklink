@@ -1,99 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@android:color/white">
 
-    <LinearLayout
+    <!-- 상단바(App Bar) -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="?attr/actionBarSize"
+        android:paddingHorizontal="10dp">
 
-        <!-- Detail Screen -->
+        <ImageButton
+            android:id="@+id/button_back"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            android:src="@drawable/ic_back_btn"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/button_chat"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_chat"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Chat"
+            android:scaleType="fitCenter"/>
+
         <TextView
+            android:id="@+id/bar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Task Detail"
             android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:layout_centerInParent="true" />
+    </RelativeLayout>
 
-        <!-- 담당자, 마감, 진행 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#CCCCCC"
+        android:layout_marginBottom="1dp" />
+
+    <!-- 내용 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:padding="13dp">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="12dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="👤 담당자" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📅 마감" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🔄 진행" />
-        </LinearLayout>
-
-        <!-- 설명 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="설명"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Chat Screen -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#CCCCCC"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Task Detail"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:id="@+id/textViewChatName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="max48"
-            android:background="#E0F0FF"
-            android:padding="8dp"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Message Input -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:orientation="vertical">
 
             <EditText
-                android:id="@+id/editTextMessage"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="메시지를 입력하세요" />
-
-            <ImageButton
-                android:id="@+id/buttonSend"
+                android:id="@+id/task_detail_task_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@android:drawable/ic_menu_send"
-                android:contentDescription="Send"
-                android:background="?attr/selectableItemBackgroundBorderless" />
-        </LinearLayout>
+                android:hint="Type Task Title"
+                android:textSize="34sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
 
-    </LinearLayout>
-</ScrollView>
+            <!-- 담당자 선택 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="1dp">
+
+                <TextView
+                    android:id="@+id/text_assign_user"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="👤 담당자"
+                    android:textSize="16sp" />
+
+                <ImageButton
+                    android:id="@+id/button_add_user"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_input_add"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="담당자 추가" />
+            </LinearLayout>
+
+            <!-- 마감 선택 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="1dp">
+
+                <TextView
+                    android:id="@+id/text_deadline"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="📅 마감일"
+                    android:textSize="16sp" />
+
+                <ImageButton
+                    android:id="@+id/button_pick_date"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_month"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="날짜 선택" />
+            </LinearLayout>
+
+            <!-- 파일 선택 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="1dp">
+
+                <TextView
+                    android:id="@+id/text_file"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="📁 파일"
+                    android:textSize="16sp" />
+
+                <ImageButton
+                    android:id="@+id/button_pick_file"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_upload"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="파일 선택" />
+            </LinearLayout>
+
+            <!-- 구분선 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#CCCCCC"
+                android:layout_marginBottom="8dp" />
+
+
+        <!-- 설명 입력 -->
+            <EditText
+                android:id="@+id/edit_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:drawable/editbox_background"
+                android:gravity="start|top"
+                android:hint="설명을 입력하세요..."
+                android:inputType="textMultiLine"
+                android:padding="12dp"
+                android:textSize="16sp"
+                android:scrollbars="none"
+                android:minHeight="600dp"
+                android:maxLines="999" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -2,22 +2,23 @@ package com.example.tasklink;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.database.*;
+import com.example.tasklink.repository.TaskRepository;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskListActivity extends AppCompatActivity {
-
-    private TextView tvProjectTitle;
-    private Button btnAddTask;
-    private LinearLayout layoutTaskList;
+    private RecyclerView rvTasks;
+    private TaskAdapter adapter;
+    private final List<TaskModel> taskList = new ArrayList<>();
+    private final TaskRepository taskRepo = new TaskRepository();
     private String projectName;
 
     @Override
@@ -25,17 +26,25 @@ public class TaskListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tasklist);
 
-        tvProjectTitle = findViewById(R.id.tv_tasklist_project_title);
-        btnAddTask = findViewById(R.id.btn_add_task);
-        layoutTaskList = findViewById(R.id.layout_task_list);
-
+        // 1) Intent에서 받은 프로젝트 이름
         projectName = getIntent().getStringExtra("projectName");
-        if (projectName != null) {
-            tvProjectTitle.setText(projectName + " 프로젝트");
-        }
 
-        btnAddTask.setOnClickListener(v -> {
-            Intent intent = new Intent(TaskListActivity.this, TaskSettingActivity.class);
+        // 2) RecyclerView 초기화
+        rvTasks = findViewById(R.id.rvTasks);
+        rvTasks.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new TaskAdapter(taskList, task -> {
+            // 3) Task 클릭 시 상세 화면으로 이동 (TaskDetailActivity 정의에 맞춰 key 조정)
+            Intent intent = new Intent(this, TaskDetailActivity.class);
+            intent.putExtra("projectName", projectName);
+            intent.putExtra("taskTitle", task.getTaskTitle());
+            startActivity(intent);
+        });
+        rvTasks.setAdapter(adapter);
+
+        // 4) + 버튼 클릭 → TaskSettingActivity 로
+        FloatingActionButton fab = findViewById(R.id.btn_add_task);
+        fab.setOnClickListener(v -> {
+            Intent intent = new Intent(this, TaskSettingActivity.class);
             intent.putExtra("projectName", projectName);
             startActivity(intent);
         });
@@ -44,67 +53,27 @@ public class TaskListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadTasksFromFirebase();
-    }
-
-    private void loadTasksFromFirebase() {
-        layoutTaskList.removeAllViews();
-
-        DatabaseReference ref = FirebaseDatabase.getInstance()
-                .getReference("tasks")
-                .child(projectName);
-
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        // 5) 리스너 등록: 변경사항 실시간 반영
+        taskRepo.attachListener(projectName, new TaskRepository.OnTasksChanged() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                boolean hasValidTasks = false;
-
-                for (DataSnapshot taskSnapshot : snapshot.getChildren()) {
-                    TaskModel task = taskSnapshot.getValue(TaskModel.class);
-                    if (task != null && task.taskTitle != null && task.members != null && !task.members.isEmpty()) {
-                        addTaskCard(task);
-                        hasValidTasks = true;
-                    }
-                }
-
-                if (!hasValidTasks) {
-                    TextView tvEmpty = new TextView(TaskListActivity.this);
-                    tvEmpty.setText("생성된 Task가 없습니다. + 버튼을 눌러 새 Task를 추가해보세요.");
-                    tvEmpty.setTextSize(16f);
-                    layoutTaskList.addView(tvEmpty);
-                }
+            public void onLoaded(List<TaskModel> tasks) {
+                taskList.clear();
+                taskList.addAll(tasks);
+                adapter.notifyDataSetChanged();
             }
-
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(TaskListActivity.this, "Task 불러오기 실패", Toast.LENGTH_SHORT).show();
+            public void onError(String message) {
+                Toast.makeText(TaskListActivity.this,
+                        "불러오기 실패: " + message,
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void addTaskCard(TaskModel task) {
-        View card = getLayoutInflater().inflate(R.layout.item_task_card, layoutTaskList, false);
-
-        TextView tvTitle = card.findViewById(R.id.tv_task_title);
-        LinearLayout layoutMembers = card.findViewById(R.id.layout_task_members);
-        Button btnViewDetail = card.findViewById(R.id.btn_view_detail);
-
-        tvTitle.setText(task.taskTitle);
-
-        for (MemberRoleModel member : task.members) {
-            TextView memberView = new TextView(this);
-            memberView.setText("담당자: " + member.name + " / 역할: " + member.role);
-            memberView.setTextSize(14f);
-            layoutMembers.addView(memberView);
-        }
-
-        btnViewDetail.setOnClickListener(v -> {
-            Intent intent = new Intent(TaskListActivity.this, TaskDetailActivity.class);
-            intent.putExtra("taskTitle", task.taskTitle);
-            intent.putExtra("projectName", projectName);
-            startActivity(intent);
-        });
-
-        layoutTaskList.addView(card);
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // 6) 리스너 해제
+        taskRepo.detachListener(projectName);
     }
 }

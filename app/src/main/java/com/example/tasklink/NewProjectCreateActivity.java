@@ -1,62 +1,74 @@
 package com.example.tasklink;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.*;
 
 public class NewProjectCreateActivity extends AppCompatActivity {
+    private EditText etTitle;
+    private Button   btnCreate;
 
-    private EditText editTextProjectTitle;
-    private EditText editTextMemberEmail;
-    private Button btnSaveProject;
+    private DatabaseReference projectsRef;
+    private String currentUserEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.projectcreate);
+        setContentView(R.layout.activity_new_project); // 아래 XML 참고
 
-        editTextProjectTitle = findViewById(R.id.editTextProjectTitle);
-        editTextMemberEmail = findViewById(R.id.editTextMemberEmail);
-        btnSaveProject = findViewById(R.id.btnSaveProject);
+        // Firebase 참조
+        projectsRef = FirebaseDatabase.getInstance()
+                .getReference("projects");
+        currentUserEmail = FirebaseAuth.getInstance()
+                .getCurrentUser()
+                .getEmail();
 
-        btnSaveProject.setOnClickListener(v -> {
-            String title = editTextProjectTitle.getText().toString().trim();
-            String memberEmail = editTextMemberEmail.getText().toString().trim();
+        etTitle   = findViewById(R.id.et_project_title);
+        btnCreate = findViewById(R.id.btn_create_project);
 
-            if (title.isEmpty() || memberEmail.isEmpty()) {
-                Toast.makeText(NewProjectCreateActivity.this, "모든 항목을 입력하세요", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        btnCreate.setOnClickListener(v -> createProject());
+    }
 
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user != null) {
-                String uid = user.getUid();
+    private void createProject() {
+        String title = etTitle.getText().toString().trim();
+        if (TextUtils.isEmpty(title)) {
+            etTitle.setError("프로젝트명을 입력하세요");
+            return;
+        }
 
-                FirebaseDatabase db = FirebaseDatabase.getInstance();
-                DatabaseReference ref = db.getReference("projects").child(uid);
+        // push()로 새 프로젝트 키 생성
+        DatabaseReference newProjRef = projectsRef.push();
+        String projectId = newProjRef.getKey();
 
-                String projectId = ref.push().getKey();
-                ProjectModel project = new ProjectModel(title, memberEmail);
+        // 데이터 모델
+        ProjectModel proj = new ProjectModel();
+        proj.title      = title;
+        proj.ownerEmail = currentUserEmail;
+        proj.members    = new java.util.HashMap<>();
+        // 소유자도 members에 등록해 두면 편리
+        proj.members.put(
+                FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                new MemberRoleModel(currentUserEmail, "Owner")
+        );
 
-                ref.child(projectId).setValue(project)
-                        .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(NewProjectCreateActivity.this, "프로젝트 저장 성공", Toast.LENGTH_SHORT).show();
-                            finish();
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(NewProjectCreateActivity.this, "저장 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        });
-            } else {
-                Toast.makeText(NewProjectCreateActivity.this, "로그인 정보가 없습니다.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // tasks 맵은 빈 채로 시작
+        newProjRef.setValue(proj)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "프로젝트 생성 완료", Toast.LENGTH_SHORT).show();
+                    finish(); // 이전 화면(대시보드)로 복귀
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this,
+                            "생성 실패: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                });
     }
 }

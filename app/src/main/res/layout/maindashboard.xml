@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
-    <!-- 제목 -->
+    <!-- 1) 상단 타이틀 -->
     <TextView
         android:id="@+id/tv_dashboard_title"
         android:layout_width="wrap_content"
@@ -17,79 +17,26 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- ScrollView로 프로젝트 카드 리스트 -->
-    <ScrollView
-        android:id="@+id/scrollView"
+    <!-- 2) RecyclerView 로 교체 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvProjects"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
+        android:padding="8dp"
         app:layout_constraintTop_toBottomOf="@id/tv_dashboard_title"
         app:layout_constraintBottom_toTopOf="@id/btn_add_project"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-        <LinearLayout
-            android:id="@+id/layout_project_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <!-- 예시 프로젝트 카드 -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardElevation="4dp"
-                app:cardCornerRadius="8dp"
-                android:clickable="true"
-                android:focusable="true">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/tv_project_name"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="프로젝트1 : TaskLink 앱 개발"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tv_project_members"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="참여자: 사용자1, 사용자2"
-                        android:textSize="14sp"
-                        android:layout_marginTop="4dp" />
-
-                    <!-- 삭제 버튼 -->
-                    <Button
-                        android:id="@+id/btn_delete_project"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="삭제"
-                        android:layout_marginTop="8dp"
-                        android:layout_gravity="end" />
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- 하단: 프로젝트 생성 버튼만 -->
-    <Button
+    <!-- 3) + 프로젝트 생성 버튼 -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_add_project"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="+ 프로젝트 생성"
-        android:layout_marginTop="12dp"
+        android:src="@drawable/ic_add"
+        android:contentDescription="@string/add_project"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
