@@ -1,8 +1,10 @@
 package com.example.tasklink;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,54 +12,105 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.*;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.example.tasklink.ProjectAdapter.OnProjectActionListener;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class MaindashboardActivity extends AppCompatActivity {
-
+    private TextView tvWelcome;
     private RecyclerView rvProjects;
     private ProjectAdapter adapter;
     private final List<ProjectModel> projectList = new ArrayList<>();
     private String currentEmail;
+    private String currentUid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // ① 이 토스트가 보이면 onCreate 진입은 성공
-        Toast.makeText(this, "Dashboard onCreate 진입", Toast.LENGTH_SHORT).show();
-
-        setContentView(R.layout.maindashboard);
-        Log.d("DBG", "Dashboard setContentView 호출됨");
-
         setContentView(R.layout.maindashboard);
 
-        // 1) 로그인된 사용자 이메일
+        // 뷰 바인딩
+        tvWelcome      = findViewById(R.id.tv_dashboard_title);
+        rvProjects     = findViewById(R.id.rvProjects);
+        Button btnAdd  = findViewById(R.id.btn_add_project);
+
+        // 로그인 사용자 확인
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             finish();
             return;
         }
+        currentUid   = user.getUid();
         currentEmail = user.getEmail();
 
-        // 2) RecyclerView + Adapter 세팅
-        rvProjects = findViewById(R.id.rvProjects);
+        // 환영 메시지 로드
+        DatabaseReference nickRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(currentUid)
+                .child("nickname");
+        nickRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                String nick = snap.getValue(String.class);
+                tvWelcome.setText(nick != null ? nick + "님의 대시보드" : "대시보드");
+            }
+            @Override public void onCancelled(@NonNull DatabaseError err) {
+                tvWelcome.setText("대시보드");
+                Toast.makeText(MaindashboardActivity.this,
+                        "닉네임 로드 실패", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // RecyclerView 설정
         rvProjects.setLayoutManager(new LinearLayoutManager(this));
-        // ↘ adapter 생성자에는 Context + List만 넘깁니다.
-        adapter = new ProjectAdapter(this, projectList);
+        adapter = new ProjectAdapter(this, projectList, new ProjectAdapter.OnProjectActionListener() {
+            @Override public void onProjectClick(ProjectModel proj) {
+                Intent i = new Intent(MaindashboardActivity.this, TaskListActivity.class);
+                i.putExtra("projectName", proj.getTitle());
+                startActivity(i);
+            }
+            @Override public void onDeleteClick(ProjectModel proj) {
+                new AlertDialog.Builder(MaindashboardActivity.this)
+                        .setTitle("프로젝트 삭제")
+                        .setMessage("정말 삭제하시겠습니까?")
+                        .setPositiveButton("삭제", (d, w) -> {
+                            DatabaseReference delRef = FirebaseDatabase.getInstance()
+                                    .getReference("projects")
+                                    .child(currentUid)
+                                    .child(proj.getId());
+                            delRef.removeValue()
+                                    .addOnSuccessListener(a -> {
+                                        projectList.remove(proj);
+                                        adapter.notifyDataSetChanged();
+                                        Toast.makeText(MaindashboardActivity.this,
+                                                "삭제되었습니다.", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(MaindashboardActivity.this,
+                                                "삭제 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        })
+                        .setNegativeButton("취소", (d, w) -> d.dismiss())
+                        .show();
+            }
+        });
         rvProjects.setAdapter(adapter);
 
-        // 3) 새 프로젝트 생성 버튼
-        findViewById(R.id.btn_add_project)
-                .setOnClickListener(v ->
-                        startActivity(new Intent(this, NewProjectCreateActivity.class))
-                );
+        // 새 프로젝트 버튼
+        btnAdd.setOnClickListener(v ->
+                startActivity(new Intent(this, NewProjectCreateActivity.class))
+        );
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        projectList.clear();
         loadProjects();
     }
 
@@ -70,7 +123,6 @@ public class MaindashboardActivity extends AppCompatActivity {
                 for (DataSnapshot ds : snap.getChildren()) {
                     ProjectModel proj = ds.getValue(ProjectModel.class);
                     if (proj == null) continue;
-
                     boolean isOwner  = currentEmail.equals(proj.getOwnerEmail());
                     boolean isMember = proj.getMembers() != null
                             && proj.getMembers().values().contains(currentEmail);
@@ -83,7 +135,7 @@ public class MaindashboardActivity extends AppCompatActivity {
             }
             @Override public void onCancelled(@NonNull DatabaseError err) {
                 Toast.makeText(MaindashboardActivity.this,
-                        "불러오기 실패: " + err.getMessage(),
+                        "프로젝트 로드 실패: " + err.getMessage(),
                         Toast.LENGTH_SHORT).show();
             }
         });
