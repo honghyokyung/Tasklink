@@ -15,15 +15,16 @@ import java.util.Map;
 public class TaskAdapter
         extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
-    public interface OnTaskClickListener {
+    public interface OnTaskActionListener {
         void onTaskClick(TaskModel task);
+        void onTaskDelete(TaskModel task);
     }
 
     private final java.util.List<TaskModel> taskList;
-    private final OnTaskClickListener listener;
+    private final OnTaskActionListener listener;
 
     public TaskAdapter(java.util.List<TaskModel> taskList,
-                       OnTaskClickListener listener) {
+                       OnTaskActionListener listener) {
         this.taskList = taskList;
         this.listener = listener;
     }
@@ -43,13 +44,13 @@ public class TaskAdapter
 
         // 1) 제목 세팅
         holder.tvTitle.setText(
-                task.taskTitle != null ? task.taskTitle : ""
+                task.getTaskTitle() != null ? task.getTaskTitle() : ""
         );
 
         // 2) 멤버 레이아웃 초기화
         holder.layoutTaskMembers.removeAllViews();
 
-        Map<String, MemberRoleModel> members = task.members;
+        Map<String, MemberRoleModel> members = task.getMembers();
         if (members == null || members.isEmpty()) {
             // 담당자 없으면 안내문
             TextView tv = new TextView(holder.itemView.getContext());
@@ -65,13 +66,17 @@ public class TaskAdapter
             }
         }
 
-        // 3) 카드 전체 클릭
+        // 3) 카드 전체 클릭 → 상세 보기
         holder.itemView.setOnClickListener(v ->
                 listener.onTaskClick(task)
         );
-        // 4) “자세히 보기” 버튼 클릭
         holder.btnViewDetail.setOnClickListener(v ->
                 listener.onTaskClick(task)
+        );
+
+        // 4) 삭제 버튼 클릭 → 삭제 콜백
+        holder.btnDelete.setOnClickListener(v ->
+                listener.onTaskDelete(task)
         );
     }
 
@@ -83,12 +88,14 @@ public class TaskAdapter
         TextView     tvTitle;
         LinearLayout layoutTaskMembers;
         Button       btnViewDetail;
+        Button       btnDelete;            // 삭제 버튼
 
         TaskViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle           = itemView.findViewById(R.id.tv_task_title);
             layoutTaskMembers = itemView.findViewById(R.id.layout_task_members);
             btnViewDetail     = itemView.findViewById(R.id.btn_view_detail);
+            btnDelete         = itemView.findViewById(R.id.btn_delete_task); // 새로 추가된 ID
         }
     }
 

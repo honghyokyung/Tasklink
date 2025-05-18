@@ -1,9 +1,9 @@
 package com.example.tasklink;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.tasklink.repository.TaskRepository;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,54 +21,71 @@ public class TaskListActivity extends AppCompatActivity {
     private TaskAdapter adapter;
     private final List<TaskModel> taskList = new ArrayList<>();
     private final TaskRepository taskRepo = new TaskRepository();
-
+    private String projectName;
     private String projectId;
-    private String projectTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tasklist);
 
-        // 1) Intent에서 projectId(푸시 키)와 projectTitle(화면용 이름) 꺼내기
-        projectId    = getIntent().getStringExtra("projectId");
-        projectTitle = getIntent().getStringExtra("projectTitle");
-        if (projectId == null || projectTitle == null) {
-            Toast.makeText(this, "프로젝트 정보가 없습니다", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        projectName = getIntent().getStringExtra("projectTitle");
+        projectId   = getIntent().getStringExtra("projectId");
 
-        // 2) 액션바 타이틀에 프로젝트명 표시 (선택사항)
-        setTitle(projectTitle + " Tasks");
-
-        // 3) RecyclerView + Adapter 세팅
         rvTasks = findViewById(R.id.rvTasks);
         rvTasks.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new TaskAdapter(taskList, task -> {
-            // Task 클릭 → 상세 화면으로 이동
-            Intent detailI = new Intent(this, TaskDetailActivity.class);
-            detailI.putExtra("projectId", projectId);
-            detailI.putExtra("projectTitle", projectTitle);
-            detailI.putExtra("taskId", task.getId());
-            startActivity(detailI);
+
+        // 인터페이스 구현체를 익명 클래스 형태로 넘겨줍니다
+        adapter = new TaskAdapter(taskList, new TaskAdapter.OnTaskActionListener() {
+            @Override
+            public void onTaskClick(TaskModel task) {
+                Intent intent = new Intent(TaskListActivity.this, TaskDetailActivity.class);
+                intent.putExtra("projectId", projectId);
+                intent.putExtra("taskId",    task.getId());
+                startActivity(intent);
+            }
+
+            public void onTaskDelete(TaskModel task) {
+                new AlertDialog.Builder(TaskListActivity.this)
+                        .setTitle("Task 삭제")
+                        .setMessage("정말 이 Task를 삭제하시겠습니까?")
+                        .setPositiveButton("삭제", (dialog, which) -> {
+                            // 실제 삭제
+                            FirebaseDatabase.getInstance()
+                                    .getReference("projects")
+                                    .child(projectId)
+                                    .child("tasks")
+                                    .child(task.getId())
+                                    .removeValue()
+                                    .addOnSuccessListener(a -> {
+                                        Toast.makeText(TaskListActivity.this,
+                                                "삭제되었습니다.", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(TaskListActivity.this,
+                                                "삭제 실패: " + e.getMessage(),
+                                                Toast.LENGTH_SHORT).show();
+                                    });
+                        })
+                        .setNegativeButton("취소", null)
+                        .show();
+            }
         });
+
         rvTasks.setAdapter(adapter);
 
-        // 4) FAB 클릭 → TaskSettingActivity 로 이동
         FloatingActionButton fab = findViewById(R.id.btn_add_task);
         fab.setOnClickListener(v -> {
-            Intent settingI = new Intent(this, TaskSettingActivity.class);
-            settingI.putExtra("projectId", projectId);
-            settingI.putExtra("projectTitle", projectTitle);
-            startActivity(settingI);
+            Intent intent = new Intent(this, TaskSettingActivity.class);
+            intent.putExtra("projectId",   projectId);
+            intent.putExtra("projectTitle", projectName);
+            startActivity(intent);
         });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // 5) projectId로 리스너 등록
         taskRepo.attachListener(projectId, new TaskRepository.OnTasksChanged() {
             @Override
             public void onLoaded(List<TaskModel> tasks) {
@@ -78,7 +96,8 @@ public class TaskListActivity extends AppCompatActivity {
             @Override
             public void onError(String message) {
                 Toast.makeText(TaskListActivity.this,
-                        "불러오기 실패: " + message, Toast.LENGTH_SHORT).show();
+                        "불러오기 실패: " + message,
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -86,7 +105,6 @@ public class TaskListActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // 6) projectId로 리스너 해제
         taskRepo.detachListener();
     }
 }
