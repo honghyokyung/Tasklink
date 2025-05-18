@@ -20,7 +20,8 @@ import java.util.*;
  */
 public class TaskDetailActivity extends AppCompatActivity {
 
-    private String projectName;
+    private String projectId;
+    private String projectTitle;
     private String taskId;
 
     private EditText etTitle, etDescription;
@@ -47,9 +48,10 @@ public class TaskDetailActivity extends AppCompatActivity {
         setContentView(R.layout.taskdetail);
 
         // 1) Intent 키 통일
-        projectName = getIntent().getStringExtra("projectName");
-        taskId      = getIntent().getStringExtra("taskId");
-        if (projectName == null) {
+        projectId    = getIntent().getStringExtra("projectId");
+        projectTitle = getIntent().getStringExtra("projectTitle");
+        taskId       = getIntent().getStringExtra("taskId");
+        if (projectTitle == null) {
             Toast.makeText(this, "프로젝트 정보가 없습니다", Toast.LENGTH_SHORT).show();
             finish(); return;
         }
@@ -113,7 +115,7 @@ public class TaskDetailActivity extends AppCompatActivity {
     private void loadTask() {
         DatabaseReference ref = FirebaseDatabase.getInstance()
                 .getReference("projects")
-                .child(projectName)
+                .child(projectId)
                 .child("tasks")
                 .child(taskId);
 
@@ -193,7 +195,7 @@ public class TaskDetailActivity extends AppCompatActivity {
 
         DatabaseReference tasksRef = FirebaseDatabase.getInstance()
                 .getReference("projects")
-                .child(projectName)
+                .child(projectTitle)
                 .child("tasks");
 
         if (taskId == null) {
