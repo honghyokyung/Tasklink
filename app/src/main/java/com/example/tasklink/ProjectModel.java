@@ -23,15 +23,8 @@ public class ProjectModel {
         this.tasks   = new HashMap<>();
     }
 
-    /** 제목·소유자만 빠르게 설정하고 싶을 때 */
-    public ProjectModel(String title, String ownerEmail) {
-        this();
-        this.title      = title;
-        this.ownerEmail = ownerEmail;
-    }
 
     // ===== 필드 접근자(Getter) =====
-
     /** 프로젝트명 */
     public String getTitle() {
         return title;
@@ -60,5 +53,14 @@ public class ProjectModel {
     /** Firebase 키(push key) 저장 */
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String,Object> result = new HashMap<>();
+        result.put("title", title);
+        result.put("ownerEmail", ownerEmail);
+        result.put("members", members);
+        result.put("tasks", tasks);
+        return result;
     }
 }

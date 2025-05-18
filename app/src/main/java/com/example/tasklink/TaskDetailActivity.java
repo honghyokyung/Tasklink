@@ -11,10 +11,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.database.*;
+import com.google.firebase.database.GenericTypeIndicator;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 
 /**
  * Task 상세(읽기/수정) 화면
@@ -27,7 +26,8 @@ public class TaskDetailActivity extends AppCompatActivity {
     private EditText etTitle, etDescription;
     private TextView tvDeadline, tvFile, tvAssignUser;
 
-    private List<MemberRoleModel> members = new ArrayList<>();
+    // 이제 Map 으로 바꿉니다 (UID → MemberRoleModel)
+    private Map<String, MemberRoleModel> members = new HashMap<>();
 
     // 파일 선택용 ActivityResultLauncher
     private final ActivityResultLauncher<String> pickFileLauncher =
@@ -46,7 +46,7 @@ public class TaskDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.taskdetail);
 
-        // 1) Intent 키 통일: 리스트에서 putExtra("taskId", key)로 보낸다고 가정
+        // 1) Intent 키 통일
         projectName = getIntent().getStringExtra("projectName");
         taskId      = getIntent().getStringExtra("taskId");
         if (projectName == null) {
@@ -72,23 +72,14 @@ public class TaskDetailActivity extends AppCompatActivity {
 
         // 4) 채팅 버튼
         btnChat.setOnClickListener(v ->
-            /*
-            {
-            Intent i = new Intent(this, ChatActivity.class);
-            i.putExtra("projectName", projectName);
-            i.putExtra("taskId", taskId);
-            startActivity(i);
-            }
-             */
-            Toast.makeText(this, "채팅 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "채팅 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
         );
 
-        // 5) 담당자 선택 (예시)
+        // 5) 담당자 선택 (예시용)
         btnAddUser.setOnClickListener(v -> {
-            // TODO: 실제 프로젝트 멤버 리스트에서 선택 UI로 교체
             members.clear();
-            members.add(new MemberRoleModel("김유저", "프론트엔드"));
-            members.add(new MemberRoleModel("이개발", "백엔드"));
+            members.put("uid1", new MemberRoleModel("김유저", "프론트엔드","테스트"));
+            members.put("uid2", new MemberRoleModel("이개발", "백엔드","테스트"));
             displayMembers();
         });
 
@@ -103,16 +94,15 @@ public class TaskDetailActivity extends AppCompatActivity {
             ).show();
         });
 
-        // 7) 파일 선택 (ActivityResult API 사용)
+        // 7) 파일 선택
         btnPickFile.setOnClickListener(v ->
                 pickFileLauncher.launch("*/*")
         );
 
-        // 8) 기존 Task 로드 (taskId가 null이면 신규 생성 모드)
+        // 8) 기존 Task 로드 (taskId가 null이면 신규)
         if (taskId != null) {
             loadTask();
         } else {
-            // 빈 화면 표시
             tvAssignUser.setText("👤 담당자: 미정");
             tvDeadline   .setText("📅 마감일");
             tvFile       .setText("📁 파일");
@@ -122,17 +112,17 @@ public class TaskDetailActivity extends AppCompatActivity {
     /** Firebase 에서 TaskModel 불러오기 */
     private void loadTask() {
         DatabaseReference ref = FirebaseDatabase.getInstance()
-                .getReference("tasks")
+                .getReference("projects")
                 .child(projectName)
+                .child("tasks")
                 .child(taskId);
 
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                // GenericTypeIndicator로 List<MemberRoleModel> 꺼내기
                 TaskModel task = snap.getValue(TaskModel.class);
                 if (task == null) { finish(); return; }
 
-                // 읽기 전용 모드 전환
+                // 읽기 전용 모드
                 etTitle      .setText(task.getTaskTitle());
                 etTitle      .setEnabled(false);
                 etDescription.setText(task.getDescription());
@@ -145,10 +135,20 @@ public class TaskDetailActivity extends AppCompatActivity {
                         task.getFileName()!=null ? "📁 파일: "+task.getFileName() : "📁 파일"
                 );
 
-                if (task.getMembers()!=null) {
-                    members = task.getMembers();
-                    displayMembers();
-                }
+                // GenericTypeIndicator 로 Map<String,MemberRoleModel> 꺼내기
+                DatabaseReference membersRef = ref.child("members");
+                membersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot msnap) {
+                        GenericTypeIndicator<Map<String, MemberRoleModel>> t =
+                                new GenericTypeIndicator<Map<String, MemberRoleModel>>() {};
+                        Map<String, MemberRoleModel> loaded = msnap.getValue(t);
+                        if (loaded != null) {
+                            members = loaded;
+                        }
+                        displayMembers();
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { /*ignore*/ }
+                });
             }
             @Override public void onCancelled(@NonNull DatabaseError err) {
                 Toast.makeText(TaskDetailActivity.this,
@@ -158,11 +158,15 @@ public class TaskDetailActivity extends AppCompatActivity {
         });
     }
 
-    /** 현재 members 리스트를 TextView에 보여주기 */
+    /** 현재 members Map 을 TextView에 보여주기 */
     private void displayMembers() {
+        if (members.isEmpty()) {
+            tvAssignUser.setText("👤 담당자: 미정");
+            return;
+        }
         StringBuilder sb = new StringBuilder();
-        for (MemberRoleModel m : members) {
-            sb.append("👤 ").append(m.name)
+        for (MemberRoleModel m : members.values()) {
+            sb.append("👤 ").append(m.nickname)
                     .append(" (").append(m.role).append(")\n");
         }
         tvAssignUser.setText(sb.toString().trim());
@@ -176,7 +180,7 @@ public class TaskDetailActivity extends AppCompatActivity {
             return;
         }
         if (members.isEmpty()) {
-            members.add(new MemberRoleModel("미정","미정"));
+            members.put("none", new MemberRoleModel("미정","미정","미정"));
         }
 
         TaskModel task = new TaskModel(
@@ -188,10 +192,10 @@ public class TaskDetailActivity extends AppCompatActivity {
         );
 
         DatabaseReference tasksRef = FirebaseDatabase.getInstance()
-                .getReference("tasks")
-                .child(projectName);
+                .getReference("projects")
+                .child(projectName)
+                .child("tasks");
 
-        // 신규: push() key, 수정: 기존 taskId
         if (taskId == null) {
             String newKey = tasksRef.push().getKey();
             tasksRef.child(newKey).setValue(task)

@@ -1,10 +1,11 @@
 package com.example.tasklink.repository;
 
 import androidx.annotation.NonNull;
-import com.example.tasklink.firebase.FirebasePaths;
 import com.example.tasklink.TaskModel;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class TaskRepository {
      * detachListener() 호출 시 제거할 때 사용됩니다.
      */
     private ValueEventListener listener;
+    private DatabaseReference tasksRef;
 
     /**
      * Task 데이터 로드 및 에러 처리를 위한 콜백 인터페이스
@@ -44,53 +46,58 @@ public class TaskRepository {
      * 지정한 프로젝트의 Task 노드에 실시간 리스너를 등록합니다.
      * 변경이 발생할 때마다 onLoaded 또는 onError가 호출됩니다.
      *
-     * @param projectId 프로젝트 식별자 (FirebasePaths.tasks 경로의 child)
+     * @param projectId 프로젝트 식별자
      * @param callback  데이터 수신 및 에러 처리를 위한 콜백 구현체
      */
     public void attachListener(@NonNull String projectId, @NonNull OnTasksChanged callback) {
         // 기존 리스너가 남아있다면 제거
-        if (listener != null) {
-            detachListener(projectId);
+        if (listener != null && tasksRef != null) {
+            tasksRef.removeEventListener(listener);
         }
-        // FirebasePaths를 통해 tasks/{projectId} 경로에 리스너를 등록
-        listener = FirebasePaths.tasks(projectId)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        List<TaskModel> tasks = new ArrayList<>();
-                        // 스냅샷의 각 자식 노드를 TaskModel로 변환
-                        for (DataSnapshot ds : snapshot.getChildren()) {
-                            TaskModel t = ds.getValue(TaskModel.class);
-                            if (t != null) {
-                                t.id = ds.getKey();               // 키 보존
-                                if (t.taskTitle == null) {
-                                    t.taskTitle = ds.getKey();
-                                }
-                                tasks.add(t);
-                            }
-                        }
-                        // 로드된 데이터를 콜백으로 전달
-                        callback.onLoaded(tasks);
-                    }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        // 오류 발생 시 에러 메시지를 콜백으로 전달
-                        callback.onError(error.getMessage());
+        // /projects/{projectId}/tasks 경로를 직접 참조
+        tasksRef = FirebaseDatabase.getInstance()
+                .getReference("projects")
+                .child(projectId)
+                .child("tasks");
+
+        listener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<TaskModel> tasks = new ArrayList<>();
+                // 스냅샷의 각 자식 노드를 TaskModel로 변환
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    TaskModel t = ds.getValue(TaskModel.class);
+                    if (t != null) {
+                        // 내부 ID 보존 (private field가 아니라 setter가 있다면 사용)
+                        t.setId(ds.getKey());
+                        // 제목이 비어 있으면 키로 대체
+                        if (t.getTaskTitle() == null) {
+                            t.taskTitle = ds.getKey();
+                        }
+                        tasks.add(t);
                     }
-                });
+                }
+                callback.onLoaded(tasks);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                callback.onError(error.getMessage());
+            }
+        };
+
+        tasksRef.addValueEventListener(listener);
     }
 
     /**
      * 등록된 리스너를 제거하여 중복 호출 및 메모리 누수를 방지합니다.
-     *
-     * @param projectId 프로젝트 식별자 (등록 시 사용한 동일 키)
      */
-    public void detachListener(@NonNull String projectId) {
-        if (listener != null) {
-            // FirebasePaths.tasks 경로에서 해당 리스너 제거
-            FirebasePaths.tasks(projectId).removeEventListener(listener);
+    public void detachListener() {
+        if (listener != null && tasksRef != null) {
+            tasksRef.removeEventListener(listener);
             listener = null;
+            tasksRef = null;
         }
     }
 }
