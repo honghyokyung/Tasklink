@@ -55,9 +55,10 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
         holder.tvName.setText(project.getTitle());
         holder.tvMembers.setText("참여자: " + project.getOwnerEmail());
 
-        // 전체 카드 클릭 시
+        // 카드 클릭 → 리스너 호출만 하고 Intent 생성은 Activity 쪽에서
         holder.itemView.setOnClickListener(v -> listener.onProjectClick(project));
-        // 삭제 버튼 클릭 시
+
+        // 삭제 버튼 클릭
         holder.btnDelete.setOnClickListener(v -> listener.onDeleteClick(project));
     }
 

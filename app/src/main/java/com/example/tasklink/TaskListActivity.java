@@ -3,6 +3,7 @@ package com.example.tasklink;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -19,42 +20,55 @@ public class TaskListActivity extends AppCompatActivity {
     private TaskAdapter adapter;
     private final List<TaskModel> taskList = new ArrayList<>();
     private final TaskRepository taskRepo = new TaskRepository();
-    private String projectName;
+
+    private String projectId;
+    private String projectTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tasklist);
 
-        // 1) Intent에서 받은 프로젝트 이름
-        projectName = getIntent().getStringExtra("projectName");
+        // 1) Intent에서 projectId(푸시 키)와 projectTitle(화면용 이름) 꺼내기
+        projectId    = getIntent().getStringExtra("projectId");
+        projectTitle = getIntent().getStringExtra("projectTitle");
+        if (projectId == null || projectTitle == null) {
+            Toast.makeText(this, "프로젝트 정보가 없습니다", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
-        // 2) RecyclerView 초기화
+        // 2) 액션바 타이틀에 프로젝트명 표시 (선택사항)
+        setTitle(projectTitle + " Tasks");
+
+        // 3) RecyclerView + Adapter 세팅
         rvTasks = findViewById(R.id.rvTasks);
         rvTasks.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TaskAdapter(taskList, task -> {
-            // 3) Task 클릭 시 상세 화면으로 이동 (TaskDetailActivity 정의에 맞춰 key 조정)
-            Intent intent = new Intent(this, TaskDetailActivity.class);
-            intent.putExtra("projectName", projectName);
-            intent.putExtra("taskTitle", task.getTaskTitle());
-            startActivity(intent);
+            // Task 클릭 → 상세 화면으로 이동
+            Intent detailI = new Intent(this, TaskDetailActivity.class);
+            detailI.putExtra("projectId", projectId);
+            detailI.putExtra("projectTitle", projectTitle);
+            detailI.putExtra("taskId", task.getId());
+            startActivity(detailI);
         });
         rvTasks.setAdapter(adapter);
 
-        // 4) + 버튼 클릭 → TaskSettingActivity 로
+        // 4) FAB 클릭 → TaskSettingActivity 로 이동
         FloatingActionButton fab = findViewById(R.id.btn_add_task);
         fab.setOnClickListener(v -> {
-            Intent intent = new Intent(this, TaskSettingActivity.class);
-            intent.putExtra("projectName", projectName);
-            startActivity(intent);
+            Intent settingI = new Intent(this, TaskSettingActivity.class);
+            settingI.putExtra("projectId", projectId);
+            settingI.putExtra("projectTitle", projectTitle);
+            startActivity(settingI);
         });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // 5) 리스너 등록: 변경사항 실시간 반영
-        taskRepo.attachListener(projectName, new TaskRepository.OnTasksChanged() {
+        // 5) projectId로 리스너 등록
+        taskRepo.attachListener(projectId, new TaskRepository.OnTasksChanged() {
             @Override
             public void onLoaded(List<TaskModel> tasks) {
                 taskList.clear();
@@ -64,8 +78,7 @@ public class TaskListActivity extends AppCompatActivity {
             @Override
             public void onError(String message) {
                 Toast.makeText(TaskListActivity.this,
-                        "불러오기 실패: " + message,
-                        Toast.LENGTH_SHORT).show();
+                        "불러오기 실패: " + message, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -73,7 +86,7 @@ public class TaskListActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // 6) 리스너 해제
-        taskRepo.detachListener(projectName);
+        // 6) projectId로 리스너 해제
+        taskRepo.detachListener();
     }
 }

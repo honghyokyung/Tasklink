@@ -18,6 +18,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.example.tasklink.ProjectAdapter.OnProjectActionListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class MaindashboardActivity extends AppCompatActivity {
         // 뷰 바인딩
         tvWelcome      = findViewById(R.id.tv_dashboard_title);
         rvProjects     = findViewById(R.id.rvProjects);
-        Button btnAdd  = findViewById(R.id.btn_add_project);
+        FloatingActionButton btnAdd = findViewById(R.id.btn_add_project);
 
         // 로그인 사용자 확인
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -69,9 +70,11 @@ public class MaindashboardActivity extends AppCompatActivity {
         // RecyclerView 설정
         rvProjects.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ProjectAdapter(this, projectList, new ProjectAdapter.OnProjectActionListener() {
-            @Override public void onProjectClick(ProjectModel proj) {
+            @Override
+            public void onProjectClick(ProjectModel proj) {
                 Intent i = new Intent(MaindashboardActivity.this, TaskListActivity.class);
-                i.putExtra("projectName", proj.getTitle());
+                i.putExtra("projectId",   proj.getId());
+                i.putExtra("projectTitle", proj.getTitle());
                 startActivity(i);
             }
             @Override public void onDeleteClick(ProjectModel proj) {
@@ -81,8 +84,8 @@ public class MaindashboardActivity extends AppCompatActivity {
                         .setPositiveButton("삭제", (d, w) -> {
                             DatabaseReference delRef = FirebaseDatabase.getInstance()
                                     .getReference("projects")
-                                    .child(currentUid)
-                                    .child(proj.getId());
+                                    .child(proj.getId());  // ← currentUid 제거
+
                             delRef.removeValue()
                                     .addOnSuccessListener(a -> {
                                         projectList.remove(proj);

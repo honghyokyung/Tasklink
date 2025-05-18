@@ -6,11 +6,19 @@
     android:layout_marginBottom="8dp">
 
     <EditText
-        android:id="@+id/edit_member"
+        android:id="@+id/edit_email"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:hint="Member" />
+        android:hint="email" />
+
+    <EditText
+        android:id="@+id/edit_nickname"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="nickname"
+        android:layout_marginStart="8dp" />
 
     <EditText
         android:id="@+id/edit_role"
@@ -18,5 +26,5 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:hint="Role"
-        android:layout_marginStart="8dp" />
+        android:layout_marginStart="16dp" />
 </LinearLayout>
