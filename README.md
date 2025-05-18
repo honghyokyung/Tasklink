@@ -1,5 +1,7 @@
 Version.1 merge complete
+
 DB 스키마 통일화 및 데이터 생성시 스키마에 맞게끔 rule추가
+
 member생성시 (기존 : name, role) -> (신규 : email, nickname, role)
 
 [to-do]
