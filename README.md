@@ -10,6 +10,7 @@ member생성시 (기존 : name, role) -> (신규 : email, nickname, role)
 3. task chatting기능
 4. project setting 추가 (이름, member추가[DB에 있는 user만 가능하게?])
 5. project 삭제랑 setting은 owner email만 가능하게끔 설정
+6. MVC패턴으로 refactoring?
 
 
 [done]
