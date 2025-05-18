@@ -1,0 +1,11 @@
+[to-do]
+1. task detail에서 +버튼 누르면 member 추가 가능하게
+2. task detail에서 파일 이랑 설명 넣을 수 있도록(file은 어떻게 넣을지 더 생각해보자)
+3. task chatting기능
+4. project setting 추가 (이름, member추가[DB에 있는 user만 가능하게?])
+5. project 삭제랑 setting은 owner email만 가능하게끔 설정
+
+
+[done]
+1. task 삭제 기능 O
+2. tasklist header에 프로젝트명에 맞게 출력 O
