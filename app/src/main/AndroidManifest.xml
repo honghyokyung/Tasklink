@@ -24,6 +24,7 @@
         </activity>
         <activity android:name=".MaindashboardActivity" />
         <activity android:name=".TaskListActivity" />
+        <activity android:name=".ProjectSettingActivity" />
         <activity android:name=".NewProjectCreateActivity" />
         <activity android:name=".TaskSettingActivity" />
         <activity android:name=".TaskDetailActivity" />
