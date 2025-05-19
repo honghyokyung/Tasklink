@@ -5,10 +5,10 @@ DB 스키마 통일화 및 데이터 생성시 스키마에 맞게끔 rule추가
 member생성시 (기존 : name, role) -> (신규 : email, nickname, role)
 
 [to-do]
-1. task detail에서 +버튼 누르면 member 추가 가능하게
-2. task detail에서 파일 이랑 설명 넣을 수 있도록(file은 어떻게 넣을지 더 생각해보자)
-3. task chatting기능
-6. MVC패턴으로 refactoring?
+1. task detail에서 파일 이랑 설명 넣을 수 있도록 수정
+2. task chatting기능
+3. add_task_acitivity, setting_task_activity(멤버, 이름 수정, 삭제), task_detail로 세분화
+4. MVC패턴으로 refactoring?
 
 
 [done]
