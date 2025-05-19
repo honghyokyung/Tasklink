@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -21,7 +22,7 @@
             android:text="프로젝트명"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="#000000" />
+            android:textColor="#000" />
 
         <!-- 참여자 이메일 -->
         <TextView
@@ -31,19 +32,40 @@
             android:text="참여자: example@email.com"
             android:textSize="14sp"
             android:layout_marginTop="4dp"
-            android:textColor="#666666" />
+            android:textColor="#666" />
 
-        <!-- 삭제 버튼 -->
-        <Button
-            android:id="@+id/btn_delete_project"
-            android:layout_width="wrap_content"
+        <!-- 설정 / 삭제 버튼 그룹 -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="삭제"
-            android:layout_gravity="end"
-            android:layout_marginTop="8dp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#F44336" />
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="12dp">
 
+            <Button
+                android:id="@+id/btn_setting_project"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="설정"
+                android:textColor="#FFF"
+                android:backgroundTint="#FF9800"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp" />
+
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/btn_delete_project"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="삭제"
+                android:textColor="#FFF"
+                android:backgroundTint="#F44336"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp" />
+
+        </LinearLayout>
     </LinearLayout>
-
 </androidx.cardview.widget.CardView>

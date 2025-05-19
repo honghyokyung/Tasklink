@@ -3,10 +3,12 @@ package com.example.tasklink;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -75,6 +77,15 @@ public class MaindashboardActivity extends AppCompatActivity {
                 Intent i = new Intent(MaindashboardActivity.this, TaskListActivity.class);
                 i.putExtra("projectId",   proj.getId());
                 i.putExtra("projectTitle", proj.getTitle());
+                startActivity(i);
+            }
+
+            @Override
+            public void onSettingClick(ProjectModel proj) {
+                Log.d("DBG","[Activity] onSettingClick: "+proj.getId());
+                Intent i = new Intent(MaindashboardActivity.this,
+                        ProjectSettingActivity.class);
+                i.putExtra("projectId", proj.getId());
                 startActivity(i);
             }
             @Override public void onDeleteClick(ProjectModel proj) {
