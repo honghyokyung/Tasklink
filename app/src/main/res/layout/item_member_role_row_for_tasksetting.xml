@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginBottom="8dp">
+
+
+    <EditText
+        android:id="@+id/edit_nickname_without_email"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="nickname"
+        android:layout_marginStart="8dp" />
+
+    <EditText
+        android:id="@+id/edit_role_without_email"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:hint="Role"
+        android:layout_marginStart="16dp" />
+
+    <Button
+        android:id="@+id/btn_delete_member"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="삭제"
+        android:backgroundTint="#F44336"
+        android:textColor="#FFF"/>
+</LinearLayout>

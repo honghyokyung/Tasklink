@@ -85,14 +85,6 @@
                     android:layout_height="wrap_content"
                     android:text="👤 담당자"
                     android:textSize="16sp" />
-
-                <ImageButton
-                    android:id="@+id/button_add_user"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@android:drawable/ic_input_add"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="담당자 추가" />
             </LinearLayout>
 
             <!-- 마감 선택 -->

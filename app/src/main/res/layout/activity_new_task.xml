@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- 화면 제목 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="새 Task 추가"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- Task 제목 입력 -->
+        <EditText
+            android:id="@+id/et_task_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Task 제목"
+            android:layout_marginTop="16dp"/>
+
+        <!-- 멤버 추가 버튼 (다이얼로그로 선택) -->
+        <Button
+            android:id="@+id/btn_add_member"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="담당자 선택"
+            android:layout_marginTop="12dp"/>
+
+        <!-- 선택된 멤버 리스트 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_members"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:overScrollMode="never"/>
+
+        <!-- 마감일 선택 -->
+        <Button
+            android:id="@+id/btn_pick_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="마감일 선택"
+            android:layout_marginTop="16dp"/>
+
+        <!-- 파일 선택 -->
+        <Button
+            android:id="@+id/btn_pick_file"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="파일 선택"
+            android:layout_marginTop="8dp"/>
+
+        <!-- 저장 버튼 -->
+        <Button
+            android:id="@+id/btn_save_task"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="저장"
+            android:layout_marginTop="24dp"/>
+    </LinearLayout>
+</ScrollView>
