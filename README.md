@@ -7,8 +7,7 @@ member생성시 (기존 : name, role) -> (신규 : email, nickname, role)
 [to-do]
 1. task detail에서 파일 이랑 설명 넣을 수 있도록 수정
 2. task chatting기능
-3. add_task_acitivity, setting_task_activity(멤버, 이름 수정, 삭제), task_detail로 세분화
-4. MVC패턴으로 refactoring?
+3. MVC패턴으로 refactoring?
 
 
 [done]
@@ -17,4 +16,4 @@ member생성시 (기존 : name, role) -> (신규 : email, nickname, role)
 3. project setting 추가 (이름, member추가[DB에 있는 user만 가능하게?])
 4. project 삭제랑 setting은 owner email만 가능하게끔 설정
 5. taskitem -> 자세히 보기 버튼을 task setting 버튼으로 변경, 담당자 밑에 deadline표시
-6. 
+6. add_task_acitivity, setting_task_activity(멤버, 이름 수정, 삭제), task_detail로 세분화
