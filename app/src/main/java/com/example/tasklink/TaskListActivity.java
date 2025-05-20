@@ -58,7 +58,7 @@ public class TaskListActivity extends AppCompatActivity {
             @Override
             public void onTaskChat(TaskModel task) {
                 // 설정(Setting) 버튼 클릭 시
-                Intent intent = new Intent(TaskListActivity.this, TaskSettingActivity.class);
+                Intent intent = new Intent(TaskListActivity.this, TaskChatActivity.class);
                 intent.putExtra("projectId", projectId);
                 intent.putExtra("taskId", task.getId());
                 intent.putExtra("taskTitle", task.getTaskTitle());

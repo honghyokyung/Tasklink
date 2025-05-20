@@ -108,6 +108,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             tvDeadline        = itemView.findViewById(R.id.tv_deadline);
             btnSetting        = itemView.findViewById(R.id.btn_setting);
             btnDelete         = itemView.findViewById(R.id.btn_delete_task);
+            btnChat           = itemView.findViewById(R.id.btn_chat);
         }
     }
 
