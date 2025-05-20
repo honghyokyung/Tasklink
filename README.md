@@ -16,3 +16,5 @@ member생성시 (기존 : name, role) -> (신규 : email, nickname, role)
 2. tasklist header에 프로젝트명에 맞게 출력 O
 3. project setting 추가 (이름, member추가[DB에 있는 user만 가능하게?])
 4. project 삭제랑 setting은 owner email만 가능하게끔 설정
+5. taskitem -> 자세히 보기 버튼을 task setting 버튼으로 변경, 담당자 밑에 deadline표시
+6. 
