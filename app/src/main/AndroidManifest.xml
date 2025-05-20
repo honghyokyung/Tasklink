@@ -27,6 +27,7 @@
         <activity android:name=".ProjectSettingActivity" />
         <activity android:name=".NewProjectCreateActivity" />
         <activity android:name=".TaskSettingActivity" />
+        <activity android:name=".NewTaskCreateActivity"/>
         <activity android:name=".TaskDetailActivity" />
         <activity android:name=".LoginActivity" />
         <activity android:name=".SignupActivity" />

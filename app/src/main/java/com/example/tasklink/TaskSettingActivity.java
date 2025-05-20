@@ -1,127 +1,213 @@
 package com.example.tasklink;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class TaskSettingActivity extends AppCompatActivity {
-
-    private TextView    tvProjectTitle;
-    private EditText    editTextTaskTitle;
-    private EditText    editTextMember;
-    private Button      btnAddMember, btnSaveTask;
+    private Spinner      spinnerMembers;
+    private TextView     tvSelectedNick;
+    private EditText     etRole, etTaskTitle;
+    private Button       btnAddMember, btnSave;
     private LinearLayout layoutMemberRoles;
+    private TextView     tvTaskTitle;
 
-    // → 이제 projectId 와 projectTitle 둘 다 받습니다.
-    private String projectId;
-    private String projectTitle;
+    private String projectId, projectTitle, taskId, taskTitle;
+    private Map<String, MemberRoleModel> projectMembers = new LinkedHashMap<>();
+    private Map<String, MemberRoleModel> selected = new LinkedHashMap<>();
+
+    private DatabaseReference projectRef, taskRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tasksetting);
 
-        // ① Intent 에서 두 값을 꺼내고…
         projectId    = getIntent().getStringExtra("projectId");
         projectTitle = getIntent().getStringExtra("projectTitle");
+        taskId       = getIntent().getStringExtra("taskId");
+        taskTitle    = getIntent().getStringExtra("taskTitle");
 
-        // ② 화면 바인딩
-        tvProjectTitle    = findViewById(R.id.tv_project_title);
-        editTextTaskTitle = findViewById(R.id.editTextTaskTitle);
-        editTextMember    = findViewById(R.id.editTextMember);
-        btnAddMember      = findViewById(R.id.btn_add_member);
-        btnSaveTask       = findViewById(R.id.btn_done);
-        layoutMemberRoles = findViewById(R.id.layout_member_roles);
+        tvTaskTitle   = findViewById(R.id.tv_task_setting_title);
+        etTaskTitle      = findViewById(R.id.editTextTaskTitle);
+        spinnerMembers   = findViewById(R.id.spinner_members);
+        tvSelectedNick   = findViewById(R.id.tv_selected_nick);
+        etRole           = findViewById(R.id.edit_role);
+        btnAddMember     = findViewById(R.id.btn_add_member);
+        layoutMemberRoles= findViewById(R.id.layout_member_roles);
+        btnSave          = findViewById(R.id.btn_done);
 
-        // 화면에는 제목만 보여줍니다.
-        tvProjectTitle.setText(projectTitle + " Task 설정");
+        tvTaskTitle.setText(taskTitle + "설정");
 
-        // '멤버 추가' 버튼
-        btnAddMember.setOnClickListener(v -> {
-            String memberInput = editTextMember.getText().toString().trim();
-            if (memberInput.isEmpty()) {
-                Toast.makeText(this, "멤버 이름(또는 이메일)을 입력하세요", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            View row = LayoutInflater.from(this)
-                    .inflate(R.layout.item_member_role_row, layoutMemberRoles, false);
-            EditText etMember = row.findViewById(R.id.edit_email);
-            etMember.setText(memberInput);
-            layoutMemberRoles.addView(row);
-            editTextMember.setText("");
-        });
+        projectRef = FirebaseDatabase.getInstance()
+                .getReference("projects")
+                .child(projectId);
+        taskRef    = projectRef.child("tasks")
+                .child(taskId != null ? taskId : "NEW");
 
-        // '저장' 버튼
-        btnSaveTask.setOnClickListener(v -> {
-            String taskTitle = editTextTaskTitle.getText().toString().trim();
-            if (taskTitle.isEmpty()) {
-                Toast.makeText(this, "Task 제목을 입력하세요", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        // 1) 프로젝트 멤버 로드
+        projectRef.child("members")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                        List<String> emails = new ArrayList<>();
+                        for (DataSnapshot c : snap.getChildren()) {
+                            MemberRoleModel m = c.getValue(MemberRoleModel.class);
+                            if (m != null) {
+                                projectMembers.put(c.getKey(), m);
+                                emails.add(m.email);
+                            }
+                        }
+                        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                                TaskSettingActivity.this,
+                                android.R.layout.simple_spinner_item,
+                                emails
+                        );
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        spinnerMembers.setAdapter(adapter);
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) {}
+                });
 
-            // 맵 형태로 멤버·역할 수집
-            Map<String, MemberRoleModel> memberMap = new HashMap<>();
-            for (int i = 0; i < layoutMemberRoles.getChildCount(); i++) {
-                View row = layoutMemberRoles.getChildAt(i);
-                EditText etEmail = row.findViewById(R.id.edit_email);
-                EditText etNickname = row.findViewById(R.id.edit_nickname);
-                EditText etRole   = row.findViewById(R.id.edit_role);
-
-                String email    = etEmail.getText().toString().trim();
-                String nickname = etNickname.getText().toString().trim();  // 닉네임 입력란이 따로 없으면 이메일로 대체
-                String role     = etRole.getText().toString().trim();
-
-                if (!email.isEmpty()&& !nickname.isEmpty() && !role.isEmpty()) {
-                    String key = UUID.randomUUID().toString();
-                    memberMap.put(key, new MemberRoleModel(email, nickname, role));
+        // 2) Spinner 선택 시 닉네임 표시
+        spinnerMembers.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                String email = (String)parent.getItemAtPosition(pos);
+                // email → MemberRoleModel → nickname
+                for (MemberRoleModel m: projectMembers.values()) {
+                    if (m.email.equals(email)) {
+                        tvSelectedNick.setText(m.nickname);
+                        break;
+                    }
                 }
             }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
-            if (memberMap.isEmpty()) {
-                Toast.makeText(this, "이메일, 닉네임, 역할 정보를 하나 이상 입력하세요", Toast.LENGTH_SHORT).show();
+        // 3) 추가 버튼
+        btnAddMember.setOnClickListener(v->{
+            String email = (String)spinnerMembers.getSelectedItem();
+            String nick  = tvSelectedNick.getText().toString();
+            String role  = etRole.getText().toString().trim();
+            if (role.isEmpty()) {
+                etRole.setError("역할을 입력하세요"); return;
+            }
+            // email→UID 찾기
+            String uid = null;
+            for (Map.Entry<String,MemberRoleModel> e: projectMembers.entrySet()) {
+                if (e.getValue().email.equals(email)) {
+                    uid = e.getKey(); break;
+                }
+            }
+            if (uid==null || selected.containsKey(uid)) {
+                Toast.makeText(this, "이미 추가되었거나 유효하지 않은 멤버", Toast.LENGTH_SHORT).show();
                 return;
             }
+            selected.put(uid, new MemberRoleModel(email,nick,role));
+            redrawSelected();
+            etRole.setText("");
+        });
 
-            // TaskModel 객체 생성
-            TaskModel task = new TaskModel(taskTitle, memberMap);
+        // 4) 편집 모드라면 기존 task 로드해서 selected 초기화...
+        if (taskId!=null) {
+            taskRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    TaskModel t = snap.getValue(TaskModel.class);
+                    if (t!=null && t.getMembers()!=null) {
+                        selected.putAll(t.getMembers());
+                        etTaskTitle.setText(t.getTaskTitle());
+                        redrawSelected();
+                    }
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            });
+        }
 
-            // → projectId 를 사용해서 정확한 경로로 씁니다!
-            DatabaseReference tasksRef = FirebaseDatabase.getInstance()
-                    .getReference("projects")
-                    .child(projectId)    // ← 여기 주의!
-                    .child("tasks");
-
-            String taskId = tasksRef.push().getKey();
-            if (taskId == null) {
-                Toast.makeText(this, "키 생성 실패", Toast.LENGTH_SHORT).show();
-                return;
+        // 5) 저장
+        btnSave.setOnClickListener(v->{
+            String newTitle = etTaskTitle.getText().toString().trim();
+            if (newTitle.isEmpty()) {
+                etTaskTitle.setError("제목 필요"); return;
             }
+            Map<String,Object> updates = new HashMap<>();
+            updates.put("taskTitle", newTitle);
+            updates.put("members", selected);
 
-            tasksRef.child(taskId)
-                    .setValue(task)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Task 저장 완료!", Toast.LENGTH_SHORT).show();
+            DatabaseReference ref = taskRef;
+            if (taskId==null) {
+                ref = projectRef.child("tasks").push();
+            }
+            ref.updateChildren(updates)
+                    .addOnSuccessListener(a-> {
+                        Toast.makeText(this,"저장 완료",Toast.LENGTH_SHORT).show();
                         finish();
                     })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this,
-                                "저장 실패: " + e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    });
+                    .addOnFailureListener(e->
+                            Toast.makeText(this,"실패: "+e.getMessage(),Toast.LENGTH_SHORT).show()
+                    );
         });
     }
+
+    private void redrawSelected() {
+        // 1) 헤더 추가
+        View header = LayoutInflater.from(this)
+                .inflate(R.layout.item_member_role_header, layoutMemberRoles, false);
+        layoutMemberRoles.addView(header);
+
+        // 2) 실제 멤버 행들
+        for (Map.Entry<String, MemberRoleModel> e : selected.entrySet()) {
+            String uid = e.getKey();
+            MemberRoleModel m = e.getValue();
+
+            View row = LayoutInflater.from(this)
+                    .inflate(R.layout.item_member_role_row_for_tasksetting, layoutMemberRoles, false);
+
+            TextView tvNick = row.findViewById(R.id.edit_nickname_without_email);
+            TextView tvRole = row.findViewById(R.id.edit_role_without_email);
+            Button  btnDel  = row.findViewById(R.id.btn_delete_member);
+
+            tvNick.setText(m.nickname);
+            tvRole.setText(m.role);
+
+            // 3) 삭제 버튼 리스너
+            btnDel.setOnClickListener(v -> new AlertDialog.Builder(this)
+                    .setTitle("멤버 삭제")
+                    .setMessage(m.nickname + "님을 이 Task에서 정말 삭제하시겠습니까?")
+                    .setPositiveButton("예", (dlg, which) -> {
+                        // 4) UI에서 제거
+                        selected.remove(uid);
+                        redrawSelected();
+
+                        // 5) DB에서도 바로 삭제
+                        DatabaseReference memberRef = FirebaseDatabase.getInstance()
+                                .getReference("projects")
+                                .child(projectId)
+                                .child("tasks")
+                                .child(taskId)
+                                .child("members")
+                                .child(uid);
+
+                        memberRef.removeValue()
+                                .addOnSuccessListener(a -> {
+                                    Toast.makeText(this, "삭제되었습니다", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e2 ->
+                                        Toast.makeText(this, "삭제 실패: " + e2.getMessage(), Toast.LENGTH_SHORT).show()
+                                );
+                    })
+                    .setNegativeButton("아니오", null)
+                    .show()
+            );
+
+            layoutMemberRoles.addView(row);
+        }
+    }
 }
+
