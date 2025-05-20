@@ -22,6 +22,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         void onTaskSetting(TaskModel task);
         /** 삭제 버튼 클릭 */
         void onTaskDelete(TaskModel task);
+        void onTaskChat(TaskModel task);
     }
 
     private final List<TaskModel> taskList;
@@ -83,6 +84,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         holder.btnDelete.setOnClickListener(v ->
                 listener.onTaskDelete(task)
         );
+        holder.btnChat.setOnClickListener(v -> {
+                listener.onTaskChat(task);
+        });
     }
 
     @Override public int getItemCount() {
@@ -95,6 +99,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         TextView     tvDeadline;
         Button       btnSetting;
         Button       btnDelete;
+        Button       btnChat;
 
         TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -103,6 +108,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             tvDeadline        = itemView.findViewById(R.id.tv_deadline);
             btnSetting        = itemView.findViewById(R.id.btn_setting);
             btnDelete         = itemView.findViewById(R.id.btn_delete_task);
+            btnChat           = itemView.findViewById(R.id.btn_chat);
         }
     }
 
