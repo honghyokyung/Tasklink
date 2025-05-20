@@ -6,7 +6,7 @@ member생성시 (기존 : name, role) -> (신규 : email, nickname, role)
 
 [to-do]
 1. task detail에서 파일 이랑 설명 넣을 수 있도록 수정
-2. task chatting기능
+2. task chatting기능 merge
 3. MVC패턴으로 refactoring?
 
 
