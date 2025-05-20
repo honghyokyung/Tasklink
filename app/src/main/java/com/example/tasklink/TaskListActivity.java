@@ -55,6 +55,16 @@ public class TaskListActivity extends AppCompatActivity {
                 startActivity(intent);
             }
 
+            @Override
+            public void onTaskChat(TaskModel task) {
+                // 설정(Setting) 버튼 클릭 시
+                Intent intent = new Intent(TaskListActivity.this, TaskSettingActivity.class);
+                intent.putExtra("projectId", projectId);
+                intent.putExtra("taskId", task.getId());
+                intent.putExtra("taskTitle", task.getTaskTitle());
+                startActivity(intent);
+            }
+
             public void onTaskDelete(TaskModel task) {
                 new AlertDialog.Builder(TaskListActivity.this)
                         .setTitle("Task 삭제")
