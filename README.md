@@ -7,7 +7,6 @@ member생성시 (기존 : name, role) -> (신규 : email, nickname, role)
 [to-do]
 1. task detail에서 파일 이랑 설명 넣을 수 있도록 수정
 2. MVC패턴으로 refactoring?
-3. task state (진행 전, 진행 중, 완료) - 최재경
 4. state에 따른 표시 task list에서 표기 - 홍효경
 5. project 전체 작업률 그래프로 나타내기 - 박병민
 6. 채팅, deadline 알림설정, 채팅진입 수정, 채팅 내 파일첨부 - 이승효
@@ -21,3 +20,4 @@ member생성시 (기존 : name, role) -> (신규 : email, nickname, role)
 5. taskitem -> 자세히 보기 버튼을 task setting 버튼으로 변경, 담당자 밑에 deadline표시
 6. add_task_acitivity, setting_task_activity(멤버, 이름 수정, 삭제), task_detail로 세분화
 7. task chatting기능 merge
+8. task state (진행 전, 진행 중, 완료) DB에 연동, task setting에서 수정 가능하게 변경
