@@ -7,6 +7,7 @@ import java.util.Map;
  * Firebase 의 /projects/{projectId}/tasks/{taskId} 에 1:1 매핑되는 모델
  */
 public class TaskModel {
+    private String status = "before start";
     public String taskTitle;                       // 작업 제목
     public Map<String, MemberRoleModel> members;   // UID → MemberRoleModel
     public String deadline;                        // 마감일
@@ -36,12 +37,14 @@ public class TaskModel {
                      Map<String, MemberRoleModel> members,
                      String deadline,
                      String fileName,
-                     String description) {
+                     String description,
+                     String status) {
         this.taskTitle   = taskTitle;
         this.members     = members != null ? members : new HashMap<>();
         this.deadline    = deadline;
         this.fileName    = fileName;
         this.description = description;
+        this.status = status;
     }
 
     // ===== Getters / Setters =====
@@ -68,4 +71,7 @@ public class TaskModel {
     public void setId(String id) {
         this.id = id;
     }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
