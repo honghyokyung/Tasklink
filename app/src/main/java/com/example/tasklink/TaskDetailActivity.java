@@ -188,7 +188,8 @@ public class TaskDetailActivity extends AppCompatActivity {
                 members,
                 tvDeadline.getText().toString(),
                 tvFile.getText().toString(),
-                etDescription.getText().toString()
+                etDescription.getText().toString(),
+                ""
         );
 
         DatabaseReference tasksRef = FirebaseDatabase.getInstance()

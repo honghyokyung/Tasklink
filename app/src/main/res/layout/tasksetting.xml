@@ -45,6 +45,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"/>
 
+    <Spinner
+        android:id="@+id/spinner_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <!-- 한 줄에: Spinner(이메일) / TextView(닉네임) / EditText(역할) / Button(추가) -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -52,6 +57,7 @@
         android:orientation="horizontal"
         android:layout_marginTop="12dp"
         android:gravity="center_vertical">
+
 
         <!-- 1) 이메일 선택 -->
         <Spinner
@@ -86,6 +92,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"/>
     </LinearLayout>
+
+
 
     <!-- 선택된 멤버·역할 리스트 -->
     <LinearLayout
