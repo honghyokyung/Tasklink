@@ -12,9 +12,33 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="10dp">
 
-        <!-- Task 제목 -->
+        <!-- 1. 상태 표시: 카드 최상단 중앙 -->
+        <TextView
+            android:id="@+id/task_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="진행중"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FF9800"
+            android:padding="5dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginBottom="6dp"/>
+
+        <View
+            android:id="@+id/status_divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:background="#CCCCCC"
+            app:layout_constraintTop_toBottomOf="@id/task_status"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="10dp" />
+
         <TextView
             android:id="@+id/tv_task_title"
             android:layout_width="0dp"
@@ -24,9 +48,9 @@
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btn_setting"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/status_divider"/>
 
-        <!-- 설정 버튼 -->
+        <!-- 3. 설정 버튼: 제목과 수평 정렬 -->
         <Button
             android:id="@+id/btn_setting"
             style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -81,6 +105,5 @@
             android:layout_marginTop="8dp"
             app:layout_constraintTop_toBottomOf="@id/tv_deadline"
             app:layout_constraintEnd_toEndOf="parent"/>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
