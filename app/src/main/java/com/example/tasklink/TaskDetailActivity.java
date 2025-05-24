@@ -1,21 +1,19 @@
 package com.example.tasklink;
 
+// 생략된 import 유지
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.*;
+import androidx.annotation.NonNull;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.firebase.database.*;
-import com.google.firebase.database.GenericTypeIndicator;
 
 import java.util.*;
 
-/**
- * Task 상세(읽기/수정) 화면
- */
 public class TaskDetailActivity extends AppCompatActivity {
 
     private String projectId;
@@ -24,10 +22,8 @@ public class TaskDetailActivity extends AppCompatActivity {
     private EditText etTitle, etDescription;
     private TextView tvDeadline, tvFile, tvAssignUser;
 
-    // UID → MemberRoleModel
     private Map<String, MemberRoleModel> members = new HashMap<>();
 
-    // 파일 선택용 런처
     private final ActivityResultLauncher<String> pickFileLauncher =
             registerForActivityResult(
                     new ActivityResultContracts.GetContent(),
@@ -44,7 +40,6 @@ public class TaskDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.taskdetail);
 
-        // 1) Intent 에서 projectId, taskId 받기
         projectId = getIntent().getStringExtra("projectId");
         taskId    = getIntent().getStringExtra("taskId");
         if (projectId == null) {
@@ -53,7 +48,6 @@ public class TaskDetailActivity extends AppCompatActivity {
             return;
         }
 
-        // 2) 뷰 바인딩
         etTitle       = findViewById(R.id.task_detail_task_title);
         etDescription = findViewById(R.id.edit_description);
         tvDeadline    = findViewById(R.id.text_deadline);
@@ -65,16 +59,16 @@ public class TaskDetailActivity extends AppCompatActivity {
         ImageButton btnPickDate = findViewById(R.id.button_pick_date);
         ImageButton btnPickFile = findViewById(R.id.button_pick_file);
 
-        // 뒤로가기
         btnBack.setOnClickListener(v -> saveAndExit());
 
-        // 채팅 (아직 미구현)
-        btnChat.setOnClickListener(v ->
-                Toast.makeText(this, "채팅 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
-        );
+        // ✅ 채팅 기능 이동: ChatActivity 실행
+        btnChat.setOnClickListener(v -> {
+            Intent intent = new Intent(TaskDetailActivity.this, TaskChatActivity.class);
+            intent.putExtra("projectId", projectId);
+            intent.putExtra("taskId", taskId);
+            startActivity(intent);
+        });
 
-
-        // 날짜 선택
         btnPickDate.setOnClickListener(v -> {
             Calendar c = Calendar.getInstance();
             new DatePickerDialog(this,
@@ -85,24 +79,17 @@ public class TaskDetailActivity extends AppCompatActivity {
             ).show();
         });
 
-        // 파일 선택
-        btnPickFile.setOnClickListener(v ->
-                pickFileLauncher.launch("*/*")
-        );
+        btnPickFile.setOnClickListener(v -> pickFileLauncher.launch("*/*"));
 
-        // 3) 기존 Task 로드 또는 신규 모드
         if (taskId != null) {
             loadTask();
         } else {
-            // 신규 생성
             tvAssignUser.setText("👤 담당자: 미정");
             tvDeadline   .setText("📅 마감일");
             tvFile       .setText("📁 파일");
         }
     }
 
-
-    /** Firebase에서 데이터를 읽어 화면에 표시 */
     private void loadTask() {
         DatabaseReference taskRef = FirebaseDatabase.getInstance()
                 .getReference("projects")
@@ -110,7 +97,6 @@ public class TaskDetailActivity extends AppCompatActivity {
                 .child("tasks")
                 .child(taskId);
 
-        // 1) TaskModel 본문
         taskRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 TaskModel task = snap.getValue(TaskModel.class);
@@ -120,19 +106,13 @@ public class TaskDetailActivity extends AppCompatActivity {
                     return;
                 }
 
-                // 읽기 전용 모드로 폼 채우기
                 etTitle      .setText(task.getTaskTitle());
                 etTitle      .setEnabled(false);
                 etDescription.setText(task.getDescription());
                 etDescription.setEnabled(false);
-                tvDeadline   .setText(
-                        task.getDeadline() != null ? task.getDeadline() : ""
-                );
-                tvFile       .setText(
-                        task.getFileName() != null ? "📁 파일: " + task.getFileName() : "📁 파일"
-                );
+                tvDeadline   .setText(task.getDeadline() != null ? task.getDeadline() : "");
+                tvFile       .setText(task.getFileName() != null ? "📁 파일: " + task.getFileName() : "📁 파일");
 
-                // 2) members Map<String,MemberRoleModel> 로드
                 taskRef.child("members")
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override public void onDataChange(@NonNull DataSnapshot msnap) {
@@ -144,19 +124,16 @@ public class TaskDetailActivity extends AppCompatActivity {
                                 }
                                 displayMembers();
                             }
-                            @Override public void onCancelled(@NonNull DatabaseError e) { /* no-op */ }
+                            @Override public void onCancelled(@NonNull DatabaseError e) {}
                         });
             }
 
             @Override public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(TaskDetailActivity.this,
-                        "로드 실패: " + error.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(TaskDetailActivity.this, "로드 실패: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    /** members 맵을 TextView에 표시 */
     private void displayMembers() {
         if (members.isEmpty()) {
             tvAssignUser.setText("👤 담당자: 미정");
@@ -164,14 +141,11 @@ public class TaskDetailActivity extends AppCompatActivity {
         }
         StringBuilder sb = new StringBuilder();
         for (MemberRoleModel m : members.values()) {
-            sb.append("👤 ")
-                    .append(m.nickname)
-                    .append(" (").append(m.role).append(")\n");
+            sb.append("👤 ").append(m.nickname).append(" (").append(m.role).append(")\n");
         }
         tvAssignUser.setText(sb.toString().trim());
     }
 
-    /** 수정 사항을 Firebase에 쓰고 화면 종료 */
     private void saveAndExit() {
         String title = etTitle.getText().toString().trim();
         if (title.isEmpty()) {
@@ -179,7 +153,6 @@ public class TaskDetailActivity extends AppCompatActivity {
             return;
         }
         if (members.isEmpty()) {
-            // 최소값 하나 채워두기
             members.put("none", new MemberRoleModel("미정","미정","미정"));
         }
 
@@ -198,7 +171,6 @@ public class TaskDetailActivity extends AppCompatActivity {
                 .child("tasks");
 
         if (taskId == null) {
-            // 신규 생성
             String newKey = tasksRef.push().getKey();
             tasksRef.child(newKey).setValue(task)
                     .addOnSuccessListener(a -> finish())
@@ -206,7 +178,6 @@ public class TaskDetailActivity extends AppCompatActivity {
                             Toast.makeText(this, "저장 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                     );
         } else {
-            // 기존 덮어쓰기
             tasksRef.child(taskId).setValue(task)
                     .addOnSuccessListener(a -> finish())
                     .addOnFailureListener(e ->
