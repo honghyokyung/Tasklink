@@ -21,7 +21,7 @@
             android:id="@+id/button_attach"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_attach"
+            android:src="@drawable/ic_add"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="첨부" />
 

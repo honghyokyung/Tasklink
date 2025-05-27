@@ -96,7 +96,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         holder.itemView.setOnClickListener(v -> listener.onTaskClick(task));
         holder.btnSetting.setOnClickListener(v -> listener.onTaskSetting(task));
         holder.btnDelete.setOnClickListener(v -> listener.onTaskDelete(task));
-        holder.btnChat.setOnClickListener(v -> listener.onTaskChat(task));
         holder.itemView.setOnClickListener(v -> listener.onTaskClick(task));
         holder.btnSetting.setOnClickListener(v -> listener.onTaskSetting(task));
         holder.btnDelete.setOnClickListener(v -> listener.onTaskDelete(task));
