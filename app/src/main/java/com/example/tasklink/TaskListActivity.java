@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -36,7 +37,6 @@ public class TaskListActivity extends AppCompatActivity {
         rvTasks = findViewById(R.id.rvTasks);
         rvTasks.setLayoutManager(new LinearLayoutManager(this));
 
-        // 인터페이스 구현체를 익명 클래스 형태로 넘겨줍니다
         adapter = new TaskAdapter(taskList, new TaskAdapter.OnTaskActionListener() {
             @Override
             public void onTaskClick(TaskModel task) {
@@ -48,7 +48,6 @@ public class TaskListActivity extends AppCompatActivity {
 
             @Override
             public void onTaskSetting(TaskModel task) {
-                // 설정(Setting) 버튼 클릭 시
                 Intent intent = new Intent(TaskListActivity.this, TaskSettingActivity.class);
                 intent.putExtra("projectId", projectId);
                 intent.putExtra("taskId", task.getId());
@@ -57,21 +56,11 @@ public class TaskListActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onTaskChat(TaskModel task) {
-                // 설정(Setting) 버튼 클릭 시
-                Intent intent = new Intent(TaskListActivity.this, TaskChatActivity.class);
-                intent.putExtra("projectId", projectId);
-                intent.putExtra("taskId", task.getId());
-                intent.putExtra("taskTitle", task.getTaskTitle());
-                startActivity(intent);
-            }
-
             public void onTaskDelete(TaskModel task) {
                 new AlertDialog.Builder(TaskListActivity.this)
                         .setTitle("Task 삭제")
                         .setMessage("정말 이 Task를 삭제하시겠습니까?")
                         .setPositiveButton("삭제", (dialog, which) -> {
-                            // 실제 삭제
                             FirebaseDatabase.getInstance()
                                     .getReference("projects")
                                     .child(projectId)
@@ -115,6 +104,7 @@ public class TaskListActivity extends AppCompatActivity {
                 taskList.addAll(tasks);
                 adapter.notifyDataSetChanged();
             }
+
             @Override
             public void onError(String message) {
                 Toast.makeText(TaskListActivity.this,

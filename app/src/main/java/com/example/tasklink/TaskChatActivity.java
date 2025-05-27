@@ -11,6 +11,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.*;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.tasklink.ChatMessageModel;
+
 
 public class TaskChatActivity extends AppCompatActivity {
     private RecyclerView chatRecyclerView;
@@ -67,7 +69,9 @@ public class TaskChatActivity extends AppCompatActivity {
             String msg = chatInput.getText().toString().trim();
             if (!msg.isEmpty()) {
                 String key = chatRef.push().getKey();
-                ChatMessageModel chat = new ChatMessageModel(currentUserId, msg, System.currentTimeMillis());
+                ChatMessageModel chat = new ChatMessageModel(
+                        currentUserId, msg, System.currentTimeMillis(), null, null
+                );
                 chatRef.child(key).setValue(chat);
                 chatInput.setText("");
             }
