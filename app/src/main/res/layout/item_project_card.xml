@@ -8,64 +8,76 @@
     card_view:cardCornerRadius="12dp"
     card_view:cardElevation="4dp">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="wrap_content">
 
-        <!-- 프로젝트 이름 -->
-        <TextView
-            android:id="@+id/tv_project_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="프로젝트명"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#000" />
-
-        <!-- 참여자 이메일 -->
-        <TextView
-            android:id="@+id/tv_project_members"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="참여자: example@email.com"
-            android:textSize="14sp"
-            android:layout_marginTop="4dp"
-            android:textColor="#666" />
-
-        <!-- 설정 / 삭제 버튼 그룹 -->
+        <!-- 기존 내용 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end"
-            android:layout_marginTop="12dp">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <Button
-                android:id="@+id/btn_setting_project"
+            <TextView
+                android:id="@+id/tv_project_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="설정"
-                android:textColor="#FFF"
-                android:backgroundTint="#FF9800"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp" />
+                android:text="프로젝트명"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#000" />
 
-            <Space
-                android:layout_width="8dp"
-                android:layout_height="wrap_content" />
-
-            <Button
-                android:id="@+id/btn_delete_project"
+            <TextView
+                android:id="@+id/tv_project_members"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="삭제"
-                android:textColor="#FFF"
-                android:backgroundTint="#F44336"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp" />
+                android:text="참여자: example@email.com"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp"
+                android:textColor="#666" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="end"
+                android:layout_marginTop="12dp">
+
+                <Button
+                    android:id="@+id/btn_setting_project"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="설정"
+                    android:textColor="#FFF"
+                    android:backgroundTint="#FF9800"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp" />
+
+                <Space
+                    android:layout_width="8dp"
+                    android:layout_height="wrap_content" />
+
+                <Button
+                    android:id="@+id/btn_delete_project"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="삭제"
+                    android:textColor="#FFF"
+                    android:backgroundTint="#F44336"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp" />
+
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+
+        <!-- 오른쪽 상단 진행률 텍스트 -->
+        <com.example.tasklink.DonutProgressView
+            android:id="@+id/donut_progress_view"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"/>
+
+    </FrameLayout>
 </androidx.cardview.widget.CardView>

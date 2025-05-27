@@ -15,6 +15,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class TaskListActivity extends AppCompatActivity {
     private RecyclerView rvTasks;
@@ -110,6 +111,7 @@ public class TaskListActivity extends AppCompatActivity {
             @Override
             public void onLoaded(List<TaskModel> tasks) {
                 taskList.clear();
+                Collections.sort(tasks, (a, b) -> getOrder(a.getStatus()) - getOrder(b.getStatus()));
                 taskList.addAll(tasks);
                 adapter.notifyDataSetChanged();
             }
@@ -119,7 +121,18 @@ public class TaskListActivity extends AppCompatActivity {
                         "불러오기 실패: " + message,
                         Toast.LENGTH_SHORT).show();
             }
+
         });
+    }
+
+    private int getOrder(String status) {
+        if (status == null) return 99;
+        switch (status) {
+            case "before start": return 0;
+            case "work in process": return 1;
+            case "task complete": return 2;
+            default: return 99;
+        }
     }
 
     @Override

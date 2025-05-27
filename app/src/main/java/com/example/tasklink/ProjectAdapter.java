@@ -1,7 +1,6 @@
 package com.example.tasklink;
 
 import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,10 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+import java.util.Map;
 
-/**
- * RecyclerView Adapter for displaying a list of projects with click and delete actions.
- */
 public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectViewHolder> {
 
     public interface OnProjectActionListener {
@@ -29,11 +26,6 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
     private final List<ProjectModel> projects;
     private final OnProjectActionListener listener;
 
-    /**
-     * @param context   호출한 Activity 컨텍스트
-     * @param projects  화면에 표시할 프로젝트 리스트
-     * @param listener  클릭, 삭제 액션을 처리할 리스너
-     */
     public ProjectAdapter(Context context,
                           List<ProjectModel> projects,
                           OnProjectActionListener listener) {
@@ -42,6 +34,7 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
         this.listener = listener;
     }
 
+    @NonNull
     @Override
     public ProjectViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context)
@@ -56,6 +49,23 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
 
         holder.tvName.setText(project.getTitle());
         holder.tvMembers.setText("참여자: " + project.getOwnerEmail());
+
+        // ✅ 진행률 계산
+        Map<String, TaskModel> taskMap = project.getTasks();
+        int total = taskMap.size();
+        float totalProgressScore = 0f;
+
+        for (TaskModel task : taskMap.values()) {
+            String status = task.getStatus();
+            if ("work in process".equalsIgnoreCase(status)) {
+                totalProgressScore += 0.5f;
+            } else if ("task complete".equalsIgnoreCase(status)) {
+                totalProgressScore += 1.0f;
+            }
+        }
+
+        int progressPercent = (total == 0) ? 0 : (int)((totalProgressScore / total) * 100);
+        holder.donutProgressView.setProgress(progressPercent);
 
         // 설정 버튼 클릭
         holder.btnSetting.setOnClickListener(v -> {
@@ -81,18 +91,18 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.ProjectV
         return projects.size();
     }
 
-    /**
-     * ViewHolder: item_project_card.xml 내 뷰들을 바인딩
-     */
     static class ProjectViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvMembers;
         Button btnSetting, btnDelete;
+        DonutProgressView donutProgressView;
+
         ProjectViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvName    = itemView.findViewById(R.id.tv_project_name);
-            tvMembers = itemView.findViewById(R.id.tv_project_members);
-            btnSetting= itemView.findViewById(R.id.btn_setting_project);
-            btnDelete = itemView.findViewById(R.id.btn_delete_project);
+            tvName     = itemView.findViewById(R.id.tv_project_name);
+            tvMembers  = itemView.findViewById(R.id.tv_project_members);
+            btnSetting = itemView.findViewById(R.id.btn_setting_project);
+            btnDelete  = itemView.findViewById(R.id.btn_delete_project);
+            donutProgressView = itemView.findViewById(R.id.donut_progress_view);
         }
     }
 }
