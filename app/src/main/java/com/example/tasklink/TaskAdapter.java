@@ -16,17 +16,19 @@ import java.util.Map;
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
     public interface OnTaskActionListener {
+        /** 전체 카드나 상세 보기 버튼 클릭 */
         void onTaskClick(TaskModel task);
+        /** 설정(Setting) 버튼 클릭 */
         void onTaskSetting(TaskModel task);
+        /** 삭제 버튼 클릭 */
         void onTaskDelete(TaskModel task);
-        void onTaskChat(TaskModel task);
+        // void onTaskChat(TaskModel task); ← 제거됨
     }
 
     private final List<TaskModel> taskList;
     private final OnTaskActionListener listener;
 
-    public TaskAdapter(List<TaskModel> taskList,
-                       OnTaskActionListener listener) {
+    public TaskAdapter(List<TaskModel> taskList, OnTaskActionListener listener) {
         this.taskList = taskList;
         this.listener = listener;
     }
@@ -68,7 +70,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
                 task.getTaskTitle() != null ? task.getTaskTitle() : ""
         );
 
-        // 담당자 목록
+        // 2) 담당자 목록
         holder.layoutTaskMembers.removeAllViews();
         Map<String, MemberRoleModel> members = task.getMembers();
         if (members == null || members.isEmpty()) {
@@ -95,6 +97,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         holder.btnSetting.setOnClickListener(v -> listener.onTaskSetting(task));
         holder.btnDelete.setOnClickListener(v -> listener.onTaskDelete(task));
         holder.btnChat.setOnClickListener(v -> listener.onTaskChat(task));
+        holder.itemView.setOnClickListener(v -> listener.onTaskClick(task));
+        holder.btnSetting.setOnClickListener(v -> listener.onTaskSetting(task));
+        holder.btnDelete.setOnClickListener(v -> listener.onTaskDelete(task));
+
+        // btnChat 클릭 리스너 제거됨
     }
 
     @Override
@@ -109,7 +116,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         TextView tvDeadline;
         Button btnSetting;
         Button btnDelete;
-        Button btnChat;
+        Button btnChat; // 뷰는 남겨둠 (필요시 XML에서도 제거 가능)
 
         TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -118,8 +125,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             layoutTaskMembers = itemView.findViewById(R.id.layout_task_members);
             tvDeadline = itemView.findViewById(R.id.tv_deadline);
             btnSetting = itemView.findViewById(R.id.btn_setting);
-            btnDelete = itemView.findViewById(R.id.btn_delete_task);
-            btnChat = itemView.findViewById(R.id.btn_chat);
+            btnDelete = itemView.findViewById(R.id.btn_delete_task);// 사용은 안 함
         }
     }
 

@@ -1,11 +1,14 @@
 package com.example.tasklink;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
-
+import com.bumptech.glide.Glide;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -13,7 +16,6 @@ import java.util.List;
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_SENDER = 1;
     private static final int TYPE_RECEIVER = 2;
-
     private List<ChatMessageModel> chatList;
     private String currentUserId;
 
@@ -30,11 +32,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view;
         if (viewType == TYPE_SENDER) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_sender, parent, false);
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_sender, parent, false);
             return new SenderViewHolder(view);
         } else {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_receiver, parent, false);
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_receiver, parent, false);
             return new ReceiverViewHolder(view);
         }
     }
@@ -45,12 +48,27 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         String time = new SimpleDateFormat("HH:mm").format(new Date(message.getTimestamp()));
 
         if (holder instanceof SenderViewHolder) {
-            ((SenderViewHolder) holder).message.setText(message.getMessage());
-            ((SenderViewHolder) holder).timestamp.setText(time);
+            bindMessage((SenderViewHolder) holder, message, time);
         } else {
-            ((ReceiverViewHolder) holder).message.setText(message.getMessage());
-            ((ReceiverViewHolder) holder).timestamp.setText(time);
+            bindMessage((ReceiverViewHolder) holder, message, time);
         }
+    }
+
+    private void bindMessage(BaseViewHolder holder, ChatMessageModel message, String time) {
+        if (message.getFileUrl() != null) {
+            holder.textView.setVisibility(View.GONE);
+            holder.imageView.setVisibility(View.VISIBLE);
+            Glide.with(holder.imageView.getContext()).load(message.getFileUrl()).into(holder.imageView);
+            holder.imageView.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(message.getFileUrl()));
+                holder.imageView.getContext().startActivity(intent);
+            });
+        } else {
+            holder.textView.setVisibility(View.VISIBLE);
+            holder.textView.setText(message.getMessage());
+            holder.imageView.setVisibility(View.GONE);
+        }
+        holder.timestamp.setText(time);
     }
 
     @Override
@@ -58,21 +76,23 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return chatList.size();
     }
 
-    static class SenderViewHolder extends RecyclerView.ViewHolder {
-        TextView message, timestamp;
-        SenderViewHolder(View view) {
+    abstract class BaseViewHolder extends RecyclerView.ViewHolder {
+        TextView textView, timestamp;
+        ImageView imageView;
+
+        BaseViewHolder(View view) {
             super(view);
-            message = view.findViewById(R.id.textMessageSender);
-            timestamp = view.findViewById(R.id.textTimestampSender);
+            textView = view.findViewById(R.id.textMessage);
+            timestamp = view.findViewById(R.id.textTimestamp);
+            imageView = view.findViewById(R.id.imageAttachment);
         }
     }
 
-    static class ReceiverViewHolder extends RecyclerView.ViewHolder {
-        TextView message, timestamp;
-        ReceiverViewHolder(View view) {
-            super(view);
-            message = view.findViewById(R.id.textMessageReceiver);
-            timestamp = view.findViewById(R.id.textTimestampReceiver);
-        }
+    class SenderViewHolder extends BaseViewHolder {
+        SenderViewHolder(View view) { super(view); }
+    }
+
+    class ReceiverViewHolder extends BaseViewHolder {
+        ReceiverViewHolder(View view) { super(view); }
     }
 }
