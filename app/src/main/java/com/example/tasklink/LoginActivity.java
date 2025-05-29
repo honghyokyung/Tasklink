@@ -14,7 +14,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText editTextId, editTextPassword;
     private Button buttonLogin, buttonSignup;
-    private FirebaseAuth mAuth;
+    public FirebaseAuth mAuth = FirebaseAuth.getInstance(); //For Mock Test
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

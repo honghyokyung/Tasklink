@@ -109,7 +109,6 @@ public class TaskDetailActivity extends AppCompatActivity {
                 etTitle      .setText(task.getTaskTitle());
                 etTitle      .setEnabled(false);
                 etDescription.setText(task.getDescription());
-                etDescription.setEnabled(false);
                 tvDeadline   .setText(task.getDeadline() != null ? task.getDeadline() : "");
                 tvFile       .setText(task.getFileName() != null ? "📁 파일: " + task.getFileName() : "📁 파일");
 

@@ -32,7 +32,14 @@ public class TaskChatActivity extends AppCompatActivity {
         chatInput = findViewById(R.id.chatInput);
         sendButton = findViewById(R.id.sendButton);
 
+        //currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Toast.makeText(this, "로그인 정보가 없습니다", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
         currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         projectId = getIntent().getStringExtra("projectId");
         taskId = getIntent().getStringExtra("taskId");
 
